@@ -54,7 +54,7 @@ namespace
 		ASSERT(leaf);
 
 		size_t	len = FindLeaf(path, leaf);
-		if (_wcsnicmp(L"AVESTA", path, len) == 0)
+		if (_wcsnicmp(L"ROOT", path, len) == 0)
 			return PATH_ROOT;
 		else if (_wcsnicmp(L"COMPUTER", path, len) == 0)
 			return FOLDER_COMPUTER;
@@ -453,7 +453,7 @@ static void InitKnownFolders()
 {
 	if (theKnownFolders.empty())
 	{
-		theKnownFolders.push_back(Path2Name(PATH_ROOT, L"AVESTA"));
+		theKnownFolders.push_back(Path2Name(PATH_ROOT, L"ROOT"));
 
 		ref<IKnownFolderManager>	manager;
 		KNOWNFOLDERID*				IDs;
