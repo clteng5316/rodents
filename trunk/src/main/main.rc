@@ -1,0 +1,72 @@
+#include "resource.h"
+#include "winver.h"
+
+#define	VS_VERSION_INFO	1
+
+//==========================================================================================================================
+// VERSIONINFO
+
+VS_VERSION_INFO VERSIONINFO
+	FILEVERSION		VERSION_NUM
+	PRODUCTVERSION	VERSION_NUM
+	FILEFLAGSMASK	0x17L
+	FILEFLAGS		0
+	FILEOS			VOS_NT
+	FILETYPE		VFT_APP
+	FILESUBTYPE	0
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "000004b0"
+        {
+            VALUE "Comments", "http://code.google.com/p/rodents/"
+            VALUE "FileDescription", "Rodents"
+            VALUE "FileVersion", VERSION_STR
+            VALUE "InternalName", "rodents"
+            VALUE "LegalCopyright", "Copyright(C) 2009 Itagaki Takahiro"
+            VALUE "OriginalFilename", "rodents.exe"
+            VALUE "ProductName", "Rodents"
+            VALUE "ProductVersion", VERSION_STR
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0, 1200
+    }
+}
+
+//==========================================================================================================================
+// STRINGTABLE
+
+STRINGTABLE
+{
+	STR_EMPTY		"(empty)"
+	STR_GO			"移動(&G)"
+	STR_LOCKBARS	"ツールバーを固定する(&L)"
+	STR_TILEHORZ	"横に並べる(&H)"
+	STR_TILEVERT	"縦に並べる(&V)"
+	STR_SCRIPTERROR	"Rodents: Script Error"
+	STR_DESKTOP		"デスクトップ"
+	STR_CALLSTACK	"関数の呼び出し履歴:"
+	STR_SRCFORMAT	"FILE: %s\nLINE: %d\nCOLUMN: %d\nERROR"
+	STR_OK			"OK"
+	STR_CANCEL		"キャンセル"
+	STR_BEFORE		"変更前"
+	STR_AFTER		"変更後"
+	STR_REVERT		"元に戻す(&R)"
+	STR_EXCLUDE		"除外する(&X)"
+	STR_RENAME_EDIT	"“<nnn>” が連番に置換されます。例：“prefix-<00777>-postfix”"
+
+	STR_E_NOENT		"""%s"" が見つかりません"
+	STR_E_ACCESS	"""%s"" にアクセスできません"
+	STR_E_NOMEM		"メモリが不足しているため実行できませんでした"
+	STR_E_NODLL		"""%s"" を実行するために必要なDLLが見つかりませんでした"
+	STR_E_NOACTION	"""%s"" に対して アクション ""%s"" が関連付けられていません"
+	STR_E_DDE		"""%s"" を実行中にDDEエラーが発生しました"
+	STR_E_NOEXEC	"""%s"" を実行できませんでした"
+	STR_E_SUPPORT	"サポートされていません"
+	STR_E_DIRECTORY	"ディレクトリは対象にできません"
+	STR_E_NOFILE	"ファイル ""%s"" を開けませんでした"
+	STR_E_SHORTCUT	"ショートカット ""%s"" を作成できません"
+	STR_E_COMPILE	"コンパイルエラー"
+}

@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<title>Rodents: Reference</title>
+	<link rel="stylesheet" type="text/css" href="style.css" />
+	<script type="text/javascript" src="js/common.js"> </script>
+</head>
+
+<body>
+
+<h1>Rodents: Reference</h1>
+
+<div><a href="index.html">マニュアル</a>に戻る</div>
+
+<ul>
+		<li><a href="#reference">概要</a></li>
+		<li><a href="#sq">Squirrel に対する変更</a></li>
+		<li><a href="#global">グローバルシンボル</a></li>
+		<li><a href="#io">I/O</a></li>
+		<li><a href="#os">シェル</a></li>
+		<li><a href="#ui">ユーザインタフェース</a></li>
+</ul>
+
+<h2 id="reference">概要</h2>
+
+<p>
+スクリプト言語として <a href="http://squirrel-lang.org/">Squirrel</a> を使用しています。
+バージョン Squirrel 3.0 alpha 1 Unicode版 をベースにしています。
+<a href="http://squirrel-lang.org/doc/sqstdlib2.html">標準ライブラリ</a> のうち math と string モジュールが有効化されています。
+</p>
+
+<h2 id="sq">Squirrel に対する変更</h2>
+<div>
+	Squirrel VM または標準ライブラリに対して以下の変更を行っています。
+	<ul>
+		<li>null に対する foreach でエラーになりません。ループを実行せずに処理を継続します。</li>
+		<li>format(&quot;%s&quot;) でオブジェクトを文字列に自動変換します。</li>
+		<li>print(...) に2個以上の引数を与えた場合、print(format(...)) と扱われます。</li>
+		<li>string に以下のメソッドが追加されています。
+			<ul>
+				<li>startswith ( prefix, [start], [end] )</li>
+				<li>endswith ( suffix, [start], [end] )</li>
+				<li>replace ( from, to, [count] )</li>
+				<li>rfind ( substr, [start] )</li>
+			</ul>
+		</li>
+	</ul>
+</div>
+
+<h2 id="global">グローバルシンボル</h2>
+<div>
+	<dl>
+		<dt>import ( filename )</dt>
+		<dd>ファイル lib/filename.nut をロードします。</dd>
+		<dt>getslot (obj , slot1 , slot2 , ... , slotN )</dt>
+		<dd>obj[slot1][slot2]...[slotN] を返します。</dd>
+		<dt>class object</dt>
+		<dd>存在しないスロットに対するアクセスを、get_xxx() または set_xxx() に転送します。</dd>
+	</dl>
+</div>
+
+<h2 id="io">I/O</h2>
+<div class="source">
+	<dt>class Reader ( filename )</dt>
+	<dd>テキストファイルを行単位で読み込みます。行は末尾の改行を含みません。
+		<ul>
+			<li>line : 現在の行です。</li>
+			<li>read () : 次の行を読み込みます。while ループで使用します。</li>
+			<li>_nexti () : 次の行を読み込みます。foreach ループで使用します。</li>
+		</ul>
+	</dd>
+	<dt>class Writer ( filename , encoding = "ascii" )</dt>
+	<dd>テキストファイルを書き出します。既存のファイルは上書きされます。
+		<ul>
+			<li>print ( value ) : 文字列を書き出します。</li>
+			<li>write ( value ) : 行を書き出します。改行が付与されます。</li>
+		</ul>
+	</dd>
+</div>
+
+<h2 id="os">シェル</h2>
+<div class="source">
+	<dt>class IShellItem</dt>
+	<dd>エクスプローラの項目です。
+		<ul>
+			<li>id : シェル名前空間上でのパスです。</li>
+			<li>name : 名前です。</li>
+			<li>parent : 親フォルダです。</li>
+			<li>path : ファイルシステム上でのパスです。</li>
+			<li>linked : ショートカットならばリンク先です。さもなければ自身です。</li>
+			<li>execute ( verb = null ) : 実行します。</li>
+		</ul>
+	</dd>
+	<dl>
+		<dt>os.copy ( src , ... , dst )</dt>
+		<dd>
+			ファイルをコピーします。
+			src には複数の文字列か、文字列を含む列挙子を指定できます。
+			src が単数の場合、dst はファイル名またはディレクトリ名を指定します。
+			src が複数の場合、dst はディレクトリ名を指定します。
+		</dd>
+		<dt>os.remove ( src , ... )</dt>
+		<dd>
+			ファイルをごみ箱に移動します。
+			src には複数の文字列か、文字列を含む列挙子を指定できます。
+		</dd>
+		<dt>os.bury ( src , ... )</dt>
+		<dd>
+			ファイルを完全に削除します。
+			src には複数の文字列か、文字列を含む列挙子を指定できます。
+		</dd>
+		<dt>os.rename ( src , dst )</dt>
+		<dd>
+			ファイル名を変更します。
+		</dd>
+		<dt>os.drives ()</dt>
+		<dd>
+			存在する利用可能なドライブをビット列として返します。
+			詳しくは GetLogicalDrives() を参照してください。
+		</dd>
+	</dl>
+</div>
+
+<h2 id="ui">ユーザインタフェース</h2>
+<div class="source">
+	<dl>
+		<dt>alert ( message , caption = &quot;Rodents&quot; , type = INFO )</dt>
+		<dd>メッセージボックスを表示します。</dd>
+		<dt>modifiers ()</dt>
+		<dd>修飾キーとマウスボタン。</dd>
+		<dt>menu ( fill , args )</dt>
+		<dd></dd>
+		<dt>Window ( parent )</dt>
+		<dd>ウィンドウです。
+			<ul>
+				<li>name : 名前</li>
+				<li>width : 幅</li>
+				<li>height : 高さ</li>
+				<li>location : 位置 as [x, y]</li>
+				<li>size : サイズ as [w, h]</li>
+				<li>parent : 親ウィンドウ</li>
+				<li>visible : 表示状態</li>
+				<li>close () : ウィンドウを閉じます。</li>
+				<li>cut ()</li>
+				<li>copy ()</li>
+				<li>paste ()</li>
+				<li>move (x, y) : ウィンドウの位置を変更します。</li>
+				<li>resize (w, h) : ウィンドウのサイズを変更します。</li>
+				<li>run () : ウィンドウが破棄されるまで待機します。</li>
+			</ul>
+		</dd>
+		<dt>ListView ( parent )</dt>
+		<dd>フォルダビューです。</dd>
+		<dt>TreeView ( parent )</dt>
+		<dd>ツリービューです。</dd>
+		<dt>TextView ( parent )</dt>
+		<dd>テキストエディタです。
+			<ul>
+				<li>selection : [選択開始位置, 選択末尾位置] を取得/設定します。</li>
+				<li>text : テキスト</li>
+			</ul>
+		</dd>
+		<dt>ReBar ( parent )</dt>
+		<dd>バーコンテナです。</dd>
+		<dt>ToolBar ( parent )</dt>
+		<dd>ツールバーです。</dd>
+	</dl>
+</div>
+
+</body>
+</html>

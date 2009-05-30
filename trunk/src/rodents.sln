@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "squirrel", "squirrel\squirrel.vcproj", "{DE24B1C4-EC96-4978-989A-3ABC78DC9194}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "main", "main\main.vcproj", "{19139F06-B7EF-42F0-AE0F-9A684BC58A41}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DE24B1C4-EC96-4978-989A-3ABC78DC9194} = {DE24B1C4-EC96-4978-989A-3ABC78DC9194}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE24B1C4-EC96-4978-989A-3ABC78DC9194}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DE24B1C4-EC96-4978-989A-3ABC78DC9194}.Debug|Win32.Build.0 = Debug|Win32
+		{DE24B1C4-EC96-4978-989A-3ABC78DC9194}.Release|Win32.ActiveCfg = Release|Win32
+		{DE24B1C4-EC96-4978-989A-3ABC78DC9194}.Release|Win32.Build.0 = Release|Win32
+		{19139F06-B7EF-42F0-AE0F-9A684BC58A41}.Debug|Win32.ActiveCfg = Debug|Win32
+		{19139F06-B7EF-42F0-AE0F-9A684BC58A41}.Debug|Win32.Build.0 = Debug|Win32
+		{19139F06-B7EF-42F0-AE0F-9A684BC58A41}.Release|Win32.ActiveCfg = Release|Win32
+		{19139F06-B7EF-42F0-AE0F-9A684BC58A41}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
