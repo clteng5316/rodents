@@ -1,0 +1,16 @@
+#summary Script and Library
+
+= 概要 =
+スクリプト言語として [http://squirrel-lang.org/ Squirrel] を使用しています。バージョン Squirrel 3.0 alpha 1 Unicode版 をベースにしています。 [http://squirrel-lang.org/doc/sqstdlib2.html 標準ライブラリ] のうち math と string モジュールが有効化されています。
+
+= Squirrel に対する変更 =
+Squirrel VM または標準ライブラリに対して以下の変更を行っています。
+
+  * null に対する foreach でエラーになりません。ループを実行せずに処理を継続します。
+  * format("%s") でオブジェクトを文字列に自動変換します。
+  * print(...) に2個以上の引数を与えた場合、print(format(...)) と扱われます。
+  * string に以下のメソッドが追加されています。
+    * startswith ( prefix, [start], [end] )
+    * endswith ( suffix, [start], [end] )
+    * replace ( from, to, [count] )
+    * rfind ( substr, [start] )
