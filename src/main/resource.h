@@ -1,7 +1,7 @@
 #pragma once
 
-#define	VERSION_NUM		2,0,0,0
-#define VERSION_STR		"2, 0, 0, 0\0"
+#define	VERSION_NUM		0,0,0,1
+#define VERSION_STR		"0, 0, 0, 1\0"
 
 #define STR_APPNAME		1000
 #define STR_EMPTY		1001
