@@ -1,0 +1,215 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<title>Rodents マニュアル</title>
+	<link rel="stylesheet" type="text/css" href="style.css" />
+	<script type="text/javascript" src="js/common.js"> </script>
+</head>
+
+<body>
+
+<h1>Rodents マニュアル</h1>
+<ul>
+	<li><a href="#overview">概要</a></li>
+	<li><a href="#feature">特徴</a></li>
+	<li><a href="#introduction">はじめに</a></li>
+	<li><a href="#usage">基本的な使い方</a></li>
+	<li><a href="#customize">カスタマイズ</a>
+		<ul>
+			<li><a href="#mouse-main">マウスジェスチャ</a></li>
+			<li><a href="#key-main">キーバインド（フォルダ）</a></li>
+			<li><a href="#key-edit">キーバインド（エディタ）</a></li>
+		</ul>
+	</li>
+	<li><a href="reference.html">リファレンス</a></li>
+	<li><a href="todo.html">ToDo</a></li>
+	<li><a href="#history">更新履歴</a></li>
+</ul>
+
+<h2 id="overview">概要</h2>
+<table>
+<tbody>
+	<tr><th>製品名</th><td>Rodents</td></tr>
+	<tr><th>バージョン</th><td>2.0.0.0</td></tr>
+	<tr><th>最終更新</th><td>2009-2009-05-30</td></tr>
+	<tr><th>著作権者</th><td>Itagaki Takahiro</td></tr>
+	<tr><th>URL</th><td><a href="http://code.google.com/p/rodents/">http://code.google.com/p/rodents/</a></td></tr>
+	<tr><th>動作環境</th><td>Windows Vista / XP (部分的)</td></tr>
+	<tr><th>開発環境</th><td>Visual C++ 2005 SP1 Express Edition</td></tr>
+	<tr><th>ライセンス</th><td><a href="http://www.opensource.jp/artistic/ja/Artistic-ja.html">Artistic License</a></td></tr>
+</tbody>
+</table>
+
+<h2 id="feature">特徴</h2>
+<p>
+Rodents はファイル管理ツール (ファイラ) です。
+Windows 標準のエクスプローラの代わりにファイルの閲覧や操作を行うことができます。
+</p>
+<ul>
+	<li>基本的な操作はエクスプローラに倣っています。</li>
+	<li>複数のタブを切り替え、複数のフォルダを同時に閲覧することができます。</li>
+	<li>マウスでもキーボードでも十分な操作ができます。</li>
+	<li>さまざまなシェル拡張ツールがそのまま利用できます。</li>
+	<li>ほとんどの要素を<a href="reference.html">スクリプト</a>で自由にカスタマイズできます。</li>
+</ul>
+	
+<h2 id="introduction">はじめに</h2>
+
+<h3>インストール</h3>
+	<p>適当な場所にフォルダを作成し、そこに解凍して下さい。</p>
+	<p>以下のコンポーネントの追加インストールが必要かもしれません。</p>
+	<div>
+		<dl>
+			<dt>MSVC runtime: msvcr80.dll, msvcp80.dll (2.0.50727.762)</dt>
+			<dd><a href="http://www.microsoft.com/downloads/details.aspx?familyid=200B2FD9-AE1A-4A14-984D-389C36F85647&amp;displaylang=ja">Microsoft Visual C++ 2005 SP1 再頒布可能パッケージ (x86)</a> を実行してください。</dd>
+		</dl>
+	</div>
+
+<h3>アンインストール</h3>
+	<p>
+	レジストリは使用していないので、フォルダごと削除して下さい。
+	</p>
+	
+<h2 id="usage">基本的な使い方</h2>
+
+<h3>フォルダ</h3>
+<ul>
+	<li>基本的には、エクスプローラと同じです。</li>
+	<li>タブクリック時やフォルダ移動時に、CtrlキーやShiftキーを押しておくと、通常とは別の動作になります。</li>
+	<ul>
+		<li>Ctrlキー / 中クリック → 別のタブで開く</li>
+		<li>Shiftキー → （未実装）</li>
+	</ul>
+	<li>タブキーにより、ビュー間の移動ができます。</li>
+</ul>
+
+<h3>タブ</h3>
+<ul>
+	<li>左クリック：クリックしたタブをフォーカス。</li>
+	<li>右クリック：(未実装)</li>
+	<li>中クリック：タブを閉じます。</li>
+</ul>
+
+<h2 id="customize">カスタマイズ</h2>
+
+<p>
+キーバインドやマウスジェスチャは自由にカスタマイズできます。
+ドキュメント config.nut の該当部分をテキストエディタなどで編集します。
+このファイルが存在しない場合、起動時にデフォルトの設定でファイルが作成されます。
+</p>
+<p>
+以下は、デフォルト設定です。
+</p>
+
+<h3 id="mouse-main">マウスジェスチャ</h3>
+<div>
+	<table class="gesture">
+	<thead>
+		<tr><th>操作</th><th>動作</th></tr>
+	</thead>
+	<tbody>
+		<tr><td>左ダブルクリック</td><td>親フォルダへ移動</td></tr>
+		<tr><td>中クリック</td><td>親フォルダへ移動</td></tr>
+		<tr><td>左ボタン＋右クリック</td><td>親フォルダへ移動</td></tr>
+		<tr><td>右ボタン＋左クリック</td><td>親フォルダへ移動</td></tr>
+		<tr><td>右ボタン＋ホイール↑</td><td>親フォルダへ移動</td></tr>
+		<tr><td>右ボタン＋ホイール↓</td><td>親フォルダへ移動</td></tr>
+		<tr><td>右ボタン＋ジェスチャ↑</td><td>親フォルダへ移動</td></tr>
+		<tr><td>右ボタン＋ジェスチャ→</td><td>進む</td></tr>
+		<tr><td>右ボタン＋ジェスチャ←</td><td>戻る</td></tr>
+		<tr><td>右ボタン＋ジェスチャ↓</td><td>閉じる</td></tr>
+	</tbody>
+	</table>
+</div>
+
+<h3 id="key-main">キーバインド（フォルダ）</h3>
+<div>
+	<table class="keybind">
+	<thead>
+		<tr><th>キー</th><th>修飾子</th><th>動作</th></tr>
+	</thead>
+	<tbody>
+		<tr><td>Tab</td><td>&nbsp;</td><td>次のタブをフォーカス</td></tr>
+		<tr><td>Tab</td><td>Shift</td><td>前のタブをフォーカス</td></tr>
+		<tr><td>Back Space</td><td>&nbsp;</td><td>親フォルダへ移動</td></tr>
+		<tr><td>↑</td><td>Alt</td><td>親フォルダへ移動</td></tr>
+		<tr><td>←</td><td>Alt</td><td>戻る</td></tr>
+		<tr><td>→</td><td>Alt</td><td>進む</td></tr>
+		<tr><td>F1</td><td>&nbsp;</td><td>バージョン情報</td></tr>
+		<tr><td>F2</td><td>&nbsp;</td><td>名前を変更</td></tr>
+		<tr><td>F5</td><td>&nbsp;</td><td>最新の情報に更新</td></tr>
+		<tr><td>F12</td><td>&nbsp;</td><td>フォルダオプション</td></tr>
+		<tr><td>A</td><td>Ctrl</td><td>すべて選択</td></tr>
+		<tr><td>A</td><td>Win</td><td>次のウィンドウをフォーカス</td></tr>
+		<tr><td>A</td><td>Win+Shift</td><td>前のウィンドウをフォーカス</td></tr>
+		<tr><td>B</td><td>Shift</td><td>コマンドプロンプトを開く</td></tr>
+		<tr><td>C</td><td>Ctrl</td><td>クリップボードへコピー</td></tr>
+		<tr><td>C</td><td>Ctrl+Shift</td><td>クリップボードへ名前をコピー</td></tr>
+		<tr><td>C</td><td>Ctrl+Alt</td><td>クリップボードへパスをコピー</td></tr>
+		<tr><td>D</td><td>Ctrl</td><td>ファイルをごみ箱へ削除</td></tr>
+		<tr><td>D</td><td>Ctrl+Shift</td><td>ファイルを完全に削除</td></tr>
+		<tr><td>E</td><td>Ctrl</td><td>名前を変更</td></tr>
+		<tr><td>N</td><td>Ctrl</td><td>フォルダを新規作成</td></tr>
+		<tr><td>N</td><td>Shift</td><td>ファイルを新規作成</td></tr>
+		<tr><td>Q</td><td>Ctrl</td><td>アプリケーションを終了</td></tr>
+		<tr><td>R</td><td>Ctrl</td><td>最新の情報に更新</td></tr>
+		<tr><td>S</td><td>Ctrl</td><td>チェックした項目を選択 (第1)</td></tr>
+		<tr><td>S</td><td>Shift</td><td>チェックした項目を選択 (第2)</td></tr>
+		<tr><td>S</td><td>Ctrl+Shift</td><td>チェックした項目を選択 (両方)</td></tr>
+		<tr><td>T</td><td>Ctrl</td><td>ツリーの選択項目を開く or 閉じる</td></tr>
+		<tr><td>T</td><td>Shift</td><td>ツリーの選択項目以外を閉じる</td></tr>
+		<tr><td>V</td><td>Ctrl</td><td>クリップボードのから貼り付け</td></tr>
+		<tr><td>V</td><td>Shift</td><td>クリップボードのファイルを選択フォルダへ貼り付け</td></tr>
+		<tr><td>V</td><td>Ctrl+Shift</td><td>クリップボードからファイル名を貼り付け</td></tr>
+		<tr><td>W</td><td>Ctrl</td><td>現在のタブを閉じる</td></tr>
+		<tr><td>X</td><td>Ctrl</td><td>クリップボードへ切り取り</td></tr>
+		<tr><td>Z</td><td>Ctrl</td><td>直前の操作を元に戻す</td></tr>
+		<tr><td>無変換</td><td>&nbsp;</td><td>次のウィンドウをフォーカス</td></tr>
+	</tbody>
+	</table>
+	<p>「チェックした項目を選択」するには、チェックボックスを有効にする必要があります。</p>
+</div>
+
+<h3 id="key-edit">キーバインド（エディタ）</h3>
+<div>
+	<p>概ねPOSIXシェルに倣っています。</p>
+	<table class="keybind">
+	<thead>
+		<tr><th>キー</th><th>修飾子</th><th>動作</th></tr>
+	</thead>
+	<tbody>
+		<tr><td>A</td><td>Ctrl</td><td>先頭へ移動</td></tr>
+		<tr><td>B</td><td>Ctrl</td><td>一文字 左へ移動</td></tr>
+		<tr><td>D</td><td>Ctrl</td><td>一文字 右を削除</td></tr>
+		<tr><td>E</td><td>Ctrl</td><td>末尾へ移動</td></tr>
+		<tr><td>F</td><td>Ctrl</td><td>一文字 右へ移動</td></tr>
+		<tr><td>H</td><td>Ctrl</td><td>一文字 左を削除</td></tr>
+		<tr><td>K</td><td>Ctrl</td><td>末尾まで削除</td></tr>
+		<tr><td>N</td><td>Ctrl</td><td>一文字 右へ移動</td></tr>
+		<tr><td>P</td><td>Ctrl</td><td>一文字 左へ移動</td></tr>
+		<tr><td>S</td><td>Ctrl</td><td>名前 or 拡張子を選択</td></tr>
+		<tr><td>U</td><td>Ctrl</td><td>先頭まで削除</td></tr>
+		<tr><td>Z</td><td>Ctrl</td><td>直前の操作を元に戻す</td></tr>
+	</tbody>
+	</table>
+</div>
+
+<h2 id="history">更新履歴</h2>
+
+<div>
+	<a href="todo.html">ToDo</a>
+</div>
+
+<ul>
+	<li>2.0.0.0 (2009-05-30)<ul>
+		<li>お試し版リリース。</li>
+	</ul></li>
+</ul>
+
+</body>
+</html>
