@@ -46,7 +46,6 @@ FolderView_keymap <-
 	[ 'C' | CTRL         ] = "copy",
 	[ 'C' | CTRL | ALT   ] = copy_path,
 	[ 'C' | CTRL | SHIFT ] = copy_name,
-	[ 'C' | SHIFT        ] = copy_to_other,
 	[ 'D' | CTRL         ] = "remove",
 	[ 'D' | CTRL | SHIFT ] = "bury",
 	[ 'E' | CTRL         ] = "rename",
@@ -67,7 +66,6 @@ FolderView_keymap <-
 	[ 'V' | SHIFT        ] = paste_into,
 	[ 'W' | CTRL         ] = "close",
 	[ 'X' | CTRL         ] = "cut",
-	[ 'X' | SHIFT        ] = move_to_other,
 	[ 'Z' | CTRL         ] = "undo",
 }
 
@@ -112,4 +110,5 @@ Editor_keymap <-
 RenameDialog_keymap <-
 {
 	merge = ::merge,
+	[ 'W' | CTRL         ] = "close",
 }

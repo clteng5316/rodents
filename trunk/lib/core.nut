@@ -3,13 +3,63 @@ list <- null
 tree <- null
 
 //=============================================================================
+// Utils
+
+function generate_hierarchy(template, parent = null)
+{
+	local obj = template.type(parent)
+
+	foreach (key, value in template)
+	{
+		switch (key)
+		{
+		case "children":
+		case "type":
+			break
+		default:
+			obj[key] = value
+		}
+	}
+
+	foreach (i in getslot(template, "children"))
+		generate_hierarchy(i, obj)
+
+	return obj
+}
+
+local function standard_call(target, fn)
+{
+	switch (typeof(fn))
+	{
+	case "null":
+		return false
+	case "string":
+		target[fn]()
+		return true
+	default:
+		fn.call(target)
+		return true
+	}
+}
+
+local function standard_keymap(map, key)
+{
+	return standard_call(this, getslot(map, key & KEYS))
+}
+
+local function standard_gesture(map, vk, dirs)
+{
+	return standard_call(this, getslot(map, vk, dirs))
+}
+
+//=============================================================================
 // ListView commands
 
 function go_up()		{ this.set_path("..") }
 function go_back()		{ this.set_path("<") }
 function go_forward()	{ this.set_path(">") }
 
-local function copy_selection(attr)
+function copy_selection(attr)
 {
 	local text
 	local items = this.selection
@@ -47,18 +97,6 @@ function add_to_bookmark()
 	// TODO: Update link bar
 }
 
-function copy_to_other()
-{
-	alert("copy_to_other")
-}
-
-function move_to_other()
-{
-	local columns = this.columns
-	foreach (c in columns)
-		print("%s / %s / %d\n", c.key, c.name, c.width)
-}
-
 function paste_into()
 {
 	local items = this.selection
@@ -74,7 +112,7 @@ function rename_dialog()
 	local sz = ::form.size
 	local dlg = RenameDialog(::form)
 	dlg.name = "名前変更"
-	dlg.keymap = RenameDialog_keymap
+	dlg.onPress = bind(standard_keymap, RenameDialog_keymap),
 	dlg.size = [sz[0] * 0.8, sz[1] * 0.6]
 	dlg.items = items
 	dlg.run()
@@ -214,63 +252,13 @@ function about()
 
 function help()
 {
-	os.path("AVESTA/doc/index.html").execute()
+	os.path("ROOT/doc/index.html").execute()
 }
 
 //=============================================================================
 // Default settings
 
 import("default")
-
-//=============================================================================
-// Utils
-
-function generate_hierarchy(template, parent = null)
-{
-	local obj = template.type(parent)
-
-	foreach (key, value in template)
-	{
-		switch (key)
-		{
-		case "children":
-		case "type":
-			break
-		default:
-			obj[key] = value
-		}
-	}
-
-	foreach (i in getslot(template, "children"))
-		generate_hierarchy(i, obj)
-
-	return obj
-}
-
-local function standard_call(target, fn)
-{
-	switch (typeof(fn))
-	{
-	case "null":
-		return false
-	case "string":
-		target[fn]()
-		return true
-	default:
-		fn.call(target)
-		return true
-	}
-}
-
-local function standard_keymap(map, key)
-{
-	return standard_call(this, getslot(map, key & KEYS))
-}
-
-local function standard_gesture(map, vk, dirs)
-{
-	return standard_call(this, getslot(map, vk, dirs))
-}
 
 //=============================================================================
 // Settings
@@ -347,7 +335,7 @@ function settings_save()
 	}
 
 	// write to file
-	local out = Writer("AVESTA/lib/settings.nut")
+	local out = Writer("ROOT/lib/settings.nut")
 	out.write("// saved at " + os.time())
 	out.print("settings <- ");
 	serialize(out, settings);
@@ -806,7 +794,7 @@ try
 	if (!import("config"))
 	{
 		// copy config.sample.nut to config.nut if not found.
-		os.copy("AVESTA/lib/config.sample.nut", "AVESTA/lib/config.nut");
+		os.copy("ROOT/lib/config.sample.nut", "ROOT/lib/config.nut");
 	}
 }
 catch (e)
