@@ -390,10 +390,19 @@ inline void sq::VM::def(PCWSTR name, const T& value)
 	::sq::def(v, name, value);
 }
 
-inline void sq::VM::newslot(SQInteger idx, SQBool bstatic) throw(Error)
+inline void sq::VM::newslot(SQInteger idx)
 {
-	if (SQ_FAILED(sq_newslot(v, idx, bstatic)))
+	if (SQ_FAILED(sq_newslot(v, idx, SQFalse)))
 		throw Error();
+}
+
+template < typename K, typename V >
+inline void sq::VM::newslot(SQInteger idx, const K& key, const V& value) throw(Error)
+{
+	idx = abs(idx);
+	push(key);
+	push(value);
+	newslot(idx);
 }
 
 inline SQInteger sq::VM::abs(SQInteger idx) throw()

@@ -461,7 +461,19 @@ bool ILEquals(const ITEMIDLIST* lhs, const ITEMIDLIST* rhs) throw()
 	return ILIsEqual(lhs, rhs) != 0;
 }
 
-#define CSIDL_MAX	(CSIDL_DRIVES+1)
+ILPtr ILCreate(REFKNOWNFOLDERID folderid)
+{
+	ILPtr	item;
+	ref<IKnownFolderManager>	manager;
+	ref<IKnownFolder>			folder;
+	if (SUCCEEDED(manager.newobj(CLSID_KnownFolderManager)) &&
+		SUCCEEDED(manager->GetFolder(folderid, &folder)) &&
+		SUCCEEDED(folder->GetIDList(0, &item)))
+		return item;
+	return null;
+}
+
+#define CSIDL_MAX	0xFF
 static ITEMIDLIST* CACHED_ITEMS[CSIDL_MAX];
 
 const ITEMIDLIST* ILGetCache(UINT csidl)
@@ -469,7 +481,20 @@ const ITEMIDLIST* ILGetCache(UINT csidl)
 	if (csidl >= CSIDL_MAX)
 		return null;
 	if (CACHED_ITEMS[csidl] == null)
-		::SHGetSpecialFolderLocation(GetWindow(), csidl, &CACHED_ITEMS[csidl]);
+	{
+		switch (csidl)
+		{
+		case CSIDL_GAMES:
+			CACHED_ITEMS[csidl] = ILCreate(FOLDERID_Games).detach();
+			break;
+		case CSIDL_LINKS:
+			CACHED_ITEMS[csidl] = ILCreate(FOLDERID_Links).detach();
+			break;
+		default:
+			::SHGetSpecialFolderLocation(GetWindow(), csidl, &CACHED_ITEMS[csidl]);
+			break;
+		}
+	}
 	return CACHED_ITEMS[csidl];
 }
 

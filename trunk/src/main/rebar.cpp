@@ -69,6 +69,89 @@ LRESULT ReBar::onNotify(Window* from, NMHDR& nm)
 bool ReBar::get_locked() const		{ return GetLocked(); }
 void ReBar::set_locked(bool value)	{ SetLocked(value); }
 
+SQInteger ReBar::get_placement(sq::VM v)
+{
+	v.newtable();
+
+	v.newslot(-1, L"locked", get_locked());
+
+	v.push(L"children");
+	v.newarray();
+	ReBar_Band band(RBBIM_SIZE | RBBIM_STYLE | RBBIM_CHILD);
+	for (int i = 0; GetBandInfo(i, &band); i++)
+	{
+		if (Window* child = Window::from(band.hwndChild))
+		{
+			if (string name = child->get_name())
+			{
+				v.newtable();
+				v.newslot(-1, L"name", name);
+				v.newslot(-1, L"width", band.cx);
+				v.newslot(-1, L"visible", band.visible);
+				v.newslot(-1, L"newline", band.newline);
+				v.append(-2);
+			}
+		}
+	}
+	v.newslot(-3);
+
+	return 1;
+}
+
+SQInteger ReBar::set_placement(sq::VM v)
+{
+	bool	locked = v.getslot(2, L"locked");
+
+	v.getslot(2, L"children");
+
+	// すでに追加されたバンドを並び替えるよりも、新しく追加したほうが楽なので。
+	typedef std::vector<ReBar_Band> Bands;
+	ReBar_Band	band(RBBIM_SIZE | RBBIM_STYLE | RBBIM_CHILD | RBBIM_CHILDSIZE);
+	Bands		bands;
+
+	try
+	{
+		while (GetBandInfo(0, &band))
+		{
+			bands.push_back(band);
+			DeleteBand(0);
+		}
+
+		foreach (v, -1)
+		{
+			SQInteger	idx = v.abs(-1);
+			PCWSTR		name = v.getslot(idx, L"name");
+			int			width = v.getslot(idx, L"width");
+			bool		visible = v.getslot(idx, L"visible");
+			bool		newline = v.getslot(idx, L"newline");
+
+			for (Bands::iterator i = bands.begin(); i != bands.end(); ++i)
+			{
+				Window* child = Window::from(i->hwndChild);
+				if (child && wcscmp(name, child->get_name()) == 0)
+				{
+					i->cx = width;
+					i->visible = visible;
+					i->newline = newline;
+					break;
+				}
+			}
+		}
+	}
+	catch (sq::Error&)
+	{
+		ASSERT(0);
+		sq_reseterror(v);
+	}
+
+	// バントは取得順に再追加する。
+	for (Bands::iterator i = bands.begin(); i != bands.end(); ++i)
+		InsertBand(&*i);
+
+	set_locked(locked);
+	return 0;
+}
+
 void ReBar::onChildChange(bool create, Hwnd child) throw()
 {
 	if (child.get_parent() == m_hwnd)

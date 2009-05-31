@@ -1,4 +1,5 @@
 ﻿form <- null
+band <- null
 list <- null
 tree <- null
 
@@ -276,6 +277,14 @@ function settings_load()
 		if (placement)
 			form.placement = placement
 
+		// band
+		if (::band)
+		{
+			local band = getslot(settings, "form", "band")
+			if (band)
+				::band.placement = band
+		}
+
 		// config
 		foreach (k, v in getslot(settings, "config"))
 		{
@@ -311,6 +320,10 @@ function settings_save()
 	// form
 	settings.form <- {}
 	settings.form.placement <- this.placement
+
+	// band
+	if (::band)
+		settings.form.band <- ::band.placement
 
 	// config
 	settings.config <- {}
@@ -354,7 +367,11 @@ local function menu_for_array(children)
 			if (i == null)
 				this.append(i, MF_SEPARATOR, null)
 			else if ((name = getslot(i, "name")) != null)
+			{
+				if (typeof(name) == "function")
+					name = name()
 				this.append(i, 0, name)
+			}
 			else
 				this.append(i, 0, i.tostring())
 		}
@@ -632,11 +649,29 @@ local function bind_config(name, value = null)
 	}
 }
 
+local function pretty_size(kbytes)
+{
+	if (kbytes > 1024 * 1024)
+		return format("%.2f GB", kbytes / (1024.0 * 1024.0))
+	else if (kbytes > 1024)
+		return format("%.2f MB", kbytes / 1024.0)
+	else
+		return format("%d KB", kbytes)
+}
+
 local ToolBar_items =
 [
 	{
 		name = "操作",
 		children = [
+			{
+				name = function()
+				{
+					return format("ゴミ箱を空にする\t(%s)",
+						pretty_size(os.trash_size()))
+				},
+				execute = os.trash_purge
+			},
 			{ name = "お気に入りに追加", execute = add_to_bookmark },
 			{ name = "最大化", execute = @() ::form.maximize() },
 			{ name = "最小化", execute = @() ::form.minimize() },
@@ -700,6 +735,7 @@ local function Form_onDrop(items)
 }
 
 const STR_SIDE = "サイドバー"
+const STR_BAND = "バンド"
 const STR_TREE = "フォルダツリー"
 const STR_LINK = "リンクバー"
 const STR_TOOL = "ツールバー"
@@ -715,6 +751,7 @@ local Form_template =
 	[
 		{
 			type = ReBar,
+			name = STR_BAND,
 			children =
 			[
 				{
@@ -758,8 +795,9 @@ function Form_new()
 	local form = generate_hierarchy(Form_template)
 	foreach (i in form.children)
 	{
-		if (i.name == STR_SIDE)
+		switch (i.name)
 		{
+		case STR_SIDE:
 			::buttons <- i
 			foreach (j in i.children)
 			{
@@ -770,6 +808,10 @@ function Form_new()
 					break
 				}
 			}
+			break
+		case STR_BAND:
+			::band <- i
+			break
 		}
 	}
 	return form

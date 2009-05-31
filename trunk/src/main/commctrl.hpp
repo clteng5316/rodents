@@ -134,8 +134,10 @@ protected:
 	void	onUpdate(RECT& bounds) throw();
 
 public:
-	bool	get_locked() const throw();
-	void	set_locked(bool value) throw();
+	bool		get_locked() const throw();
+	void		set_locked(bool value) throw();
+	SQInteger	get_placement(sq::VM v);
+	SQInteger	set_placement(sq::VM v);
 
 private:
 	void	onChildChange(bool create, Hwnd child) throw();

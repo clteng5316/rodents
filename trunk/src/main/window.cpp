@@ -303,73 +303,44 @@ void Window::set_name(PCWSTR value) throw()
 
 SQInteger Window::get_placement(sq::VM v)
 {
-	try
-	{
-		WINDOWPLACEMENT place = { sizeof(WINDOWPLACEMENT) };
-		GetWindowPlacement(m_hwnd, &place);
-		bool	zoomed = (place.showCmd == SW_MAXIMIZE);
-		bool	vertical = ((GetStyle(m_hwnd) & CCS_VERT) != 0);
-		v.newtable();
-		v.push(L"bounds");
-		v.newarray((LONG*)&place.rcNormalPosition, 4);
-		v.newslot(-3);
-		v.push(L"zoomed");
-		v.push(zoomed);
-		v.newslot(-3);
-		v.push(L"vertical");
-		v.push(vertical);
-		v.newslot(-3);
-		return 1;
-	}
-	catch (sq::Error&)
-	{
-		return SQ_ERROR;
-	}
+	WINDOWPLACEMENT place = { sizeof(WINDOWPLACEMENT) };
+	GetWindowPlacement(m_hwnd, &place);
+	bool	zoomed = (place.showCmd == SW_MAXIMIZE);
+	bool	vertical = ((GetStyle(m_hwnd) & CCS_VERT) != 0);
+	v.newtable();
+	v.push(L"bounds");
+	v.newarray((LONG*)&place.rcNormalPosition, 4);
+	v.newslot(-3);
+	v.newslot(-1, L"zoomed", zoomed);
+	v.newslot(-1, L"vertical", vertical);
+	return 1;
 }
 
 SQInteger Window::set_placement(sq::VM v)
 {
-	try
-	{
-		RECT	bounds = { 0, 0, 0, 0 };
-		bool	zoomed = false;
-		bool	vertical = false;
+	RECT	bounds = { 0, 0, 0, 0 };
 
-		v.push(L"bounds");
-		if SQ_SUCCEEDED(sq_get(v, 2))
-		{
-			v.getarray(-1, (LONG*)&bounds, 4);
-			sq_pop(v, 1);
-		}
-		v.push(L"zoomed");
-		if SQ_SUCCEEDED(sq_get(v, 2))
-		{
-			sq::get(v, -1, &zoomed);
-			sq_pop(v, 1);
-		}
-		v.push(L"vertical");
-		if SQ_SUCCEEDED(sq_get(v, 2))
-		{
-			sq::get(v, -1, &vertical);
-			sq_pop(v, 1);
-		}
-
-		WINDOWPLACEMENT place = { sizeof(WINDOWPLACEMENT) };
-		GetWindowPlacement(m_hwnd, &place);
-		if (!IsRectEmpty(&bounds))
-			place.rcNormalPosition = bounds;
-		place.showCmd = (zoomed ? SW_SHOWMAXIMIZED : SW_RESTORE);
-		SetWindowPlacement(m_hwnd, &place);
-		if (vertical)
-			ModifyStyle(0, CCS_VERT);
-		else
-			ModifyStyle(CCS_VERT, 0);
-		return 0;
-	}
-	catch (sq::Error&)
+	v.push(L"bounds");
+	if SQ_SUCCEEDED(sq_get(v, 2))
 	{
-		return SQ_ERROR;
+		v.getarray(-1, (LONG*)&bounds, 4);
+		sq_pop(v, 1);
 	}
+
+	bool zoomed = v.getslot(2, L"zoomed");
+	bool vertical = v.getslot(2, L"vertical");
+
+	WINDOWPLACEMENT place = { sizeof(WINDOWPLACEMENT) };
+	GetWindowPlacement(m_hwnd, &place);
+	if (!IsRectEmpty(&bounds))
+		place.rcNormalPosition = bounds;
+	place.showCmd = (zoomed ? SW_SHOWMAXIMIZED : SW_RESTORE);
+	SetWindowPlacement(m_hwnd, &place);
+	if (vertical)
+		ModifyStyle(0, CCS_VERT);
+	else
+		ModifyStyle(CCS_VERT, 0);
+	return 0;
 }
 
 Window* Window::from(HWND hwnd)

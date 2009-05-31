@@ -120,7 +120,7 @@ namespace
 		{ -1, L"Downloads" },	// FOLDERID_Profile/Downloads
 		{ CSIDL_FAVORITES	, L"Favorites" },	// FOLDERID_Profile/Favorites
 		{ CSIDL_FONTS		, L"Fonts" },	// FOLDERID_Windows
-		{ -1 },
+		{ CSIDL_GAMES },
 		{ -1 },
 		{ CSIDL_HISTORY		, L"History" },	// FOLDERID_LocalAppData
 		{ CSIDL_INTERNET_CACHE	},

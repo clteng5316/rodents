@@ -41,21 +41,15 @@ namespace
 	{
 		if (!menu_handle)
 			return sq::raise(v, L"unexpected call of menu.append()");
-		try
-		{
-			SQInteger	id = sq_getsize(v, 1);
-			UINT		flags = v.get<UINT>(3);
-			PCWSTR		name = v.get<PCWSTR>(4);
-			MenuAppend(menu_handle, flags, (UINT)id, name);
-			v.push(id);
-			sq_push(v, 2);
-			sq::rawset(v, 1);
-			return 0;
-		}
-		catch (sq::Error&)
-		{
-			return SQ_ERROR;
-		}
+
+		SQInteger	id = sq_getsize(v, 1);
+		UINT		flags = v.get<UINT>(3);
+		PCWSTR		name = v.get<PCWSTR>(4);
+		MenuAppend(menu_handle, flags, (UINT)id, name);
+		v.push(id);
+		sq_push(v, 2);
+		sq::rawset(v, 1);
+		return 0;
 	}
 
 	// (fill, args, pt = null)

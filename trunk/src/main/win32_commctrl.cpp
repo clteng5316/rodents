@@ -670,7 +670,7 @@ bool ReBar_SyncBands(HWND hwnd)
 		if (!ReBar_GetBandInfo(hwnd, i, &band))
 			continue;
 		bool visible = GetVisible(band.hwndChild);
-		if (visible != band.Visible)
+		if (visible != band.visible)
 		{
 			changed = true;
 			ReBar_ShowBand(hwnd, i, visible);
@@ -685,7 +685,7 @@ bool ReBar_GetLocked(HWND hwnd)
 {
 	ReBar_Band band(RBBIM_STYLE);
 	if (ReBar_GetBandInfo(hwnd, 0, &band))
-		return band.Locked;
+		return band.locked;
 	return ReBar_DefaultLocked;
 }
 
@@ -706,9 +706,9 @@ void ReBar_SetLocked(HWND hwnd, bool value)
 		ReBar_Band band(RBBIM_STYLE | RBBIM_CHILD | RBBIM_IDEALSIZE | RBBIM_CHILDSIZE | RBBIM_SIZE);
 		if (ReBar_GetBandInfo(hwnd, 0, &band))
 		{
-			if (bands.empty() && band.Locked == value)
+			if (bands.empty() && band.locked == value)
 				return; // ïœçXÇÃïKóvÇ»Çµ
-			band.Locked = value;
+			band.locked = value;
 			bands.push_back(band);
 		}
 		ReBar_DeleteBand(hwnd, 0);

@@ -255,6 +255,10 @@ typedef struct tagSQRegFunction{
 	const SQChar *typemask;
 }SQRegFunction;
 
+typedef struct SQError
+{
+} SQError;
+
 /*vm*/
 SQUIRREL_API HSQUIRRELVM sq_open(SQInteger initialstacksize);
 SQUIRREL_API HSQUIRRELVM sq_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize);

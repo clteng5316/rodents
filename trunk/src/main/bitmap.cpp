@@ -71,19 +71,9 @@ HBITMAP BitmapLoad(Image* image, const SIZE* sz) throw()
 			w = hh * w / h;
 			h = hh;
 		}
-
-#ifdef NOT_USED
-		// 非常に汚い画像になる場合があるので使わない
-		if (Image* thumb = image->GetThumbnailImage(w, h))
-		{
-			// FIXME: Bitmap へのキャストは危険かもしれない?
-			HBITMAP bitmap;
-			if (static_cast<Bitmap*>(thumb)->GetHBITMAP(Color(0, 0, 0), &bitmap) == Ok)
-				return bitmap;
-			delete thumb;
-		}
-#endif
 	}
+
+	// 非常に汚い画像になる場合があるので GetThumbnailImage は使わない
 
 	RECT	rc = { 0, 0, w, h };
 
@@ -95,10 +85,7 @@ HBITMAP BitmapLoad(Image* image, const SIZE* sz) throw()
 	HGDIOBJ old = SelectObject(dc, bitmap);
 
 	FillRect(dc, &rc, (HBRUSH)::GetStockObject(WHITE_BRUSH));
-	{
-		Graphics g(dc);
-		g.DrawImage(image, 0, 0, w, h);
-	}
+	Graphics(dc).DrawImage(image, 0, 0, w, h);
 
 	SelectObject(dc, old);
 	DeleteDC(dc);
