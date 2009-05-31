@@ -1,7 +1,17 @@
 #pragma once
 
-#define	VERSION_NUM		0,0,0,1
-#define VERSION_STR		"0, 0, 0, 1\0"
+// Fix those version numbers for each release.
+#define VERSION_MAJOR		0
+#define VERSION_MINOR		0
+#define VERSION_RELEASE		0
+#define VERSION_REVISION	2
+
+
+#define MAKE_VERSION_NUM(a, b, c, d)	a,b,c,d
+#define MAKE_VERSION_STR(a, b, c, d)	#a ", " #b ", " #c ", " #d "\0" 
+
+#define	VERSION_NUM		MAKE_VERSION_NUM(VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE, VERSION_REVISION)
+#define VERSION_STR		MAKE_VERSION_STR(VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE, VERSION_REVISION)
 
 #define STR_APPNAME		1000
 #define STR_EMPTY		1001

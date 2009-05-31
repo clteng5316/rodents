@@ -49,8 +49,8 @@ public:
 	void	set_font(PCWSTR value) throw();
 
 	SQInteger	get_children(sq::VM v);
-	SQInteger	get_placement(sq::VM v);
-	SQInteger	set_placement(sq::VM v);
+	virtual SQInteger	get_placement(sq::VM v);
+	virtual SQInteger	set_placement(sq::VM v);
 
 	SIZE	get_DefaultSize() const throw();
 	RECT	get_CenterArea() const throw();

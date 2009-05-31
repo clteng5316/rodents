@@ -402,6 +402,9 @@ extern HRESULT XpFileOpenDialogCreate(REFINTF pp);
 extern HRESULT XpFileSaveDialogCreate(REFINTF pp);
 extern HRESULT XpFileOperationCreate(REFINTF pp);
 
+#define CSIDL_GAMES		0xF0
+#define CSIDL_LINKS		0xF1
+
 //==========================================================================================================================
 // PROPERTYKEY
 

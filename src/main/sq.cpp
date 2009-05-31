@@ -494,12 +494,13 @@ void sq::VM::close() throw()
 	}
 }
 
-void sq::VM::getslot(SQInteger idx, PCWSTR key) throw(Error)
+sq::stackobj sq::VM::getslot(SQInteger idx, PCWSTR key) throw(Error)
 {
 	idx = sq::abs(v, idx);
 	push(key);
 	if SQ_FAILED(sq_get(v, idx))
 		throw sq::Error(L"key \"%s\" not found", key);
+	return sq::stackobj(*this, -1);
 }
 
 PCWSTR sq::VM::tostring(SQInteger idx)

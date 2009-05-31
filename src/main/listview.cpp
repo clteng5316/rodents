@@ -174,8 +174,8 @@ namespace
 			*count = lengthof(COLUMNS_FOR_TRASH);
 			return COLUMNS_FOR_TRASH;
 		}
-		else if (ILIsDescendant(item, CSIDL_FAVORITES) /* ||
-				 ILIsDescendant(item, CSIDL_LINKS)*/)
+		else if (ILIsDescendant(item, CSIDL_FAVORITES) ||
+				 ILIsDescendant(item, CSIDL_LINKS))
 		{
 			static const PROPERTYKEY COLUMNS_FOR_LINKS[] =
 			{
@@ -186,7 +186,7 @@ namespace
 			*count = lengthof(COLUMNS_FOR_LINKS);
 			return COLUMNS_FOR_LINKS;
 		}
-/*		else if (ILIsDescendant(item, CSIDL_GAMES))
+		else if (ILIsDescendant(item, CSIDL_GAMES))
 		{
 			static const PROPERTYKEY COLUMNS_FOR_GAMES[] =
 			{
@@ -197,7 +197,7 @@ namespace
 			*count = lengthof(COLUMNS_FOR_GAMES);
 			return COLUMNS_FOR_GAMES;
 		}
-*/		else
+		else
 		{
 			// 未実装 on Vista
 			// PKEY_FileExtension	: ファイル拡張子
@@ -1166,6 +1166,7 @@ IFACEMETHODIMP ListView::OnViewWindowActive(IShellView* pShellView)
 // Vistaではステータスバーメッセージは送られてこないようだ。
 IFACEMETHODIMP ListView::GetControlWindow(UINT id, HWND* pHwnd)
 {
+#if NOT_USED
 	if (!pHwnd)
 		return E_POINTER;
 	switch (id)
@@ -1174,17 +1175,22 @@ IFACEMETHODIMP ListView::GetControlWindow(UINT id, HWND* pHwnd)
 		*pHwnd = m_hwnd;
 		return S_OK;
 	}
+#endif
 	return E_NOTIMPL;
 }
 
 IFACEMETHODIMP ListView::SendControlMsg(UINT id, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* lResult)
 {
+#if NOT_USED
 	if (id != FCW_STATUS || msg != SB_SETTEXT)
 		return E_NOTIMPL;
 	SetStatusTextSB((PCWSTR)lParam);
 	if (lResult)
 		*lResult = TRUE;
 	return S_OK;
+#else
+	return E_NOTIMPL;
+#endif
 }
 
 IFACEMETHODIMP ListView::QueryActiveShellView(IShellView** pp)
@@ -1208,12 +1214,7 @@ IFACEMETHODIMP ListView::BrowseObject(const ITEMIDLIST* pidl, UINT flags)
 	if (m_browser)
 	{
 		SaveFolderSettings();
-		if SUCCEEDED(hr = m_browser->BrowseToIDList(pidl, flags))
-		{
-		//	if (hr == S_UPDATED)
-		//		OnAdjust();
-		}
-		return hr;
+		return m_browser->BrowseToIDList(pidl, flags);
 	}
 
 	if (!SBSP_IS_ABSOLUTE(flags))
@@ -1229,8 +1230,6 @@ IFACEMETHODIMP ListView::BrowseObject(const ITEMIDLIST* pidl, UINT flags)
 		return hr;
 	}
 
-//	if (hr == S_UPDATED)
-//		OnAdjust();
 	return S_OK;
 }
 

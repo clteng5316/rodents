@@ -1059,8 +1059,15 @@ bool SQVM::CallNative(SQNativeClosure *nclosure,SQInteger nargs,SQInteger stackb
 		_stack[stackbase] = _weakref(nclosure->_env)->_obj;
 	}
 
-	
-	SQInteger ret = (nclosure->_function)(this);
+	SQInteger ret;
+	try
+	{
+		ret = (nclosure->_function)(this);
+	}
+	catch (SQError&)
+	{
+		ret = SQ_ERROR;
+	}
 	_nnativecalls--;
 	suspend = false;
 	if( ret == SQ_SUSPEND_FLAG) suspend = true;

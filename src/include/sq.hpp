@@ -13,7 +13,7 @@ namespace sq
 
 	//================================================================================
 
-	class Error
+	class Error : public SQError
 	{
 	public:
 		Error();
@@ -95,6 +95,8 @@ namespace sq
 
 	//================================================================================
 
+	class stackobj;
+
 	class VM
 	{
 	private:
@@ -113,8 +115,9 @@ namespace sq
 		template < typename T > void push(const T& value);
 		template < typename T > void def(PCWSTR name, const T& value);
 
-		void newslot(SQInteger idx, SQBool bstatic = SQFalse) throw(Error);
-		void getslot(SQInteger idx, PCWSTR key) throw(Error);
+		stackobj getslot(SQInteger idx, PCWSTR key) throw(Error);
+		void newslot(SQInteger idx) throw(Error);
+		template < typename K, typename V > void newslot(SQInteger idx, const K& key, const V& value) throw(Error);
 
 		inline void newtable() throw()		{ sq_newtable(v); }
 		inline void newarray() throw()		{ sq_newarray(v, 0); }
@@ -129,6 +132,16 @@ namespace sq
 		void		append(SQInteger idx) throw();
 		void		close() throw();
 		PCWSTR		tostring(SQInteger idx);
+	};
+
+	class stackobj
+	{
+	private:
+		VM			v;
+		SQInteger	idx;
+	public:
+		stackobj(VM v, SQInteger idx) : v(v), idx(v.abs(idx)) {}
+		template < typename T > operator T () throw(Error) { return v.get<T>(idx); }
 	};
 
 	class iterator

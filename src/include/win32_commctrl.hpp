@@ -223,9 +223,9 @@ struct ReBar_Band : REBARBANDINFO
 {
 	ReBar_Band(DWORD rbbim);
 
-	__declspec(property(get=get_Visible, put=set_Visible)) bool Visible;
-	bool get_Visible() const		{ return (fStyle & RBBS_HIDDEN) == 0; }
-	void set_Visible(bool value)
+	__declspec(property(get=get_visible, put=set_visible)) bool visible;
+	bool get_visible() const		{ return (fStyle & RBBS_HIDDEN) == 0; }
+	void set_visible(bool value)
 	{
 		if (value)
 			fStyle &= ~RBBS_HIDDEN;
@@ -233,12 +233,19 @@ struct ReBar_Band : REBARBANDINFO
 			fStyle |= RBBS_HIDDEN;
 	}
 
-	__declspec(property(get=get_Break)) bool Break;
-	bool get_Break() const		{ return (fStyle & RBBS_BREAK) != 0; }
+	__declspec(property(get=get_newline, put=set_newline)) bool newline;
+	bool get_newline() const		{ return (fStyle & RBBS_BREAK) != 0; }
+	void set_newline(bool value)
+	{
+		if (value)
+			fStyle |= RBBS_BREAK;
+		else
+			fStyle &= ~RBBS_BREAK;
+	}
 
-	__declspec(property(get=get_Locked, put=set_Locked)) bool Locked;
-	bool get_Locked() const		{ return (fStyle & RBBS_NOGRIPPER) != 0; }
-	void set_Locked(bool value)
+	__declspec(property(get=get_locked, put=set_locked)) bool locked;
+	bool get_locked() const		{ return (fStyle & RBBS_NOGRIPPER) != 0; }
+	void set_locked(bool value)
 	{
 		if (value)
 		{	// locked, without grip
