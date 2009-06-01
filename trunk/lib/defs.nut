@@ -186,8 +186,8 @@ enum FVM
 	TILE	= 6,	//  48 : FVM_TILE
 }
 
-// FVF : Folder View Flags
-enum FVF
+// FWF : Folder View Flags
+enum FWF
 {
 	NAMESELECT,
 	FULLROWSELECT,

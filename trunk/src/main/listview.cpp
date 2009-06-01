@@ -971,7 +971,9 @@ IFACEMETHODIMP ListView::OnViewCreated(IShellView* view)
 				m_listview.DisableIME();
 				if (HFONT font = GetFont())
 					m_listview.SetFont(font);
-				m_listview.SetExtendedStyle(LVS_EX_GRIDLINES, (gridlines ? LVS_EX_GRIDLINES : 0));
+				SetExtendedStyle(LVS_EX_GRIDLINES, gridlines);
+				if (WINDOWS_VERSION < WINDOWS_VISTA)
+					SetExtendedStyle(LVS_EX_FULLROWSELECT, (FWF_SELECT[folderview_flag] & FWF_FULLROWSELECT) != 0);
 			}
 			// Attach Preview
 			m_frame = FindWindowByClass(m_hwnd, L"DirectUIHWND");
@@ -1936,6 +1938,8 @@ void ListView::recreate()
 			sv->GetCurrentInfo(&m_settings);
 			SaveSelection(sv, &selection, &focus);
 		}
+		m_settings.fFlags &= ~FWF_MASK;
+		m_settings.fFlags |= FWF_SELECT[folderview_flag];
 	} while (0);
 
 	ExplorerDestroy(m_browser, m_cookie);
@@ -1991,6 +1995,8 @@ void set_folderview_flag(int value)
 						fv2->SetCurrentFolderFlags(FWF_MASK, FWF_FULLROWSELECT);
 					fv2->SetCurrentFolderFlags(FWF_MASK, FWF_SELECT[value]);
 				}
+				else
+					v->recreate();
 			}
 		}
 	}
