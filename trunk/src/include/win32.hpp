@@ -186,6 +186,7 @@ extern HBITMAP		BitmapLoad(Image* image, const SIZE* sz = null) throw();
 extern HIMAGELIST	ImageListLoad(IStream* stream) throw();
 extern HIMAGELIST	ImageListLoad(PCWSTR filename) throw();
 extern HIMAGELIST	ImageListLoad(Bitmap* image) throw();
+extern const GUID*	ImageFormatFromExtension(PCWSTR extension);
 
 //==========================================================================================================================
 // Menu

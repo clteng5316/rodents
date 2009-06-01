@@ -206,21 +206,34 @@ HRESULT PathGetBrowsable(IShellItem* item)
 	return S_FALSE;
 }
 
+static HRESULT StreamCreateForBitmap(IStream** pp, IShellItem* item)
+{
+	CoStr name;
+	if (SUCCEEDED(item->GetDisplayName(SIGDN_PARENTRELATIVE, &name)) &&
+		ImageFormatFromExtension(PathFindExtension(name)))
+		return StreamCreate(pp, item, STGM_READ | STGM_SHARE_DENY_NONE);
+	else
+		return E_INVALIDARG;
+}
+
 static HRESULT StreamFromChildren(IStream** pp, IShellItem* item)
 {
 	HRESULT					hr;
-	ref<IShellItem>			child;
 	ref<IEnumShellItems>	e;
 	if SUCCEEDED(hr = item->BindToHandler(null, BHID_StorageEnum, IID_PPV_ARGS(&e)))
 	{
-		e->Next(1, &child, null);
-		e = null;
-		if (!child)
-			return E_FAIL;
-		return StreamFromChildren(pp, child);
+		ref<IShellItem>	child;
+		const int MAX_SCAN = 3;
+		for (int i = 0; i < MAX_SCAN && e->Next(1, &child, null) == S_OK; i++)
+		{
+			if SUCCEEDED(StreamFromChildren(pp, child))
+				return S_OK;
+			child = null;
+		}
+		return E_FAIL;
 	}
 	else
-		return StreamCreate(pp, item, STGM_READ | STGM_SHARE_DENY_NONE);
+		return StreamCreateForBitmap(pp, item);
 }
 
 const int THUMBNAIL_SIZE = 256;
@@ -237,10 +250,13 @@ HBITMAP PathGetThumbnail(IShellItem* item)
 	// サイズの制御が自由なので、いまのところ GDI+ を優先させている。
 	// 性能を重要視するなら IShellItemImageFactory を優先すべきかもしれない。
 
-	ref<IStream> stream;
-	if (SUCCEEDED(StreamFromChildren(&stream, item)) &&
-		(bitmap = BitmapLoad(stream, &sz)) != null)
-		return bitmap;
+	do
+	{
+		ref<IStream> stream;
+		if (SUCCEEDED(StreamFromChildren(&stream, item)) &&
+			(bitmap = BitmapLoad(stream, &sz)) != null)
+			return bitmap;
+	} while (0);
 
 	if (SUCCEEDED(item->QueryInterface(&factory)) && 
 		SUCCEEDED(factory->GetImage(sz, SIIGBF_BIGGERSIZEOK | SIIGBF_THUMBNAILONLY, &bitmap)))
