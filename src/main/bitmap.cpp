@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "win32.hpp"
 #include "math.hpp"
+#include "string.hpp"
 
 static Color SysColor(int n)
 {
@@ -161,4 +162,32 @@ HIMAGELIST ImageListLoad(Bitmap* image)
 	ImageList_Add(imagelist, bitmap, NULL);
 	DeleteObject(bitmap);
 	return imagelist;
+}
+
+typedef std::pair<PCWSTR, const GUID*>	E2F;
+
+static const E2F EXT2FMT[] =
+{
+	E2F(L"bmp"	, &ImageFormatBMP),
+	E2F(L"emf"	, &ImageFormatEMF),
+	E2F(L"exif"	, &ImageFormatEXIF),
+	E2F(L"gif"	, &ImageFormatGIF),
+	E2F(L"ico"	, &ImageFormatIcon),
+	E2F(L"jpe"	, &ImageFormatJPEG),
+	E2F(L"jpeg"	, &ImageFormatJPEG),
+	E2F(L"jpg"	, &ImageFormatJPEG),
+	E2F(L"png"	, &ImageFormatPNG),
+	E2F(L"tif"	, &ImageFormatTIFF),
+	E2F(L"tiff"	, &ImageFormatTIFF),
+	E2F(L"wmf"	, &ImageFormatWMF),
+};
+
+const GUID* ImageFormatFromExtension(PCWSTR extension)
+{
+	while (*extension == L'.') { ++extension; }
+
+	const E2F* i = std::lower_bound(EXT2FMT, endof(EXT2FMT), extension, Less());
+	if (i != endof(EXT2FMT) && _wcsicmp(extension, i->first) == 0)
+		return i->second;
+	return null;
 }

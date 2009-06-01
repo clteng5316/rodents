@@ -85,6 +85,7 @@ typedef ptrdiff_t		ssize_t;
 
 // Ã“I”z—ñ‚Ì’·‚³
 #define lengthof(ar)		(sizeof(ar) / sizeof(ar[0]))
+#define endof(ar)			((ar) + lengthof(ar))
 
 #undef min
 template < typename T > inline T min(T a, T b)	{ return a < b ? a : b; }

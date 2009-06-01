@@ -6,11 +6,30 @@
 extern bool	MatchContainsI(PCWSTR pattern, PCWSTR text) throw();
 extern bool	MatchPatternI(PCWSTR pattern, PCWSTR text) throw();
 
+// •¶š—ñ‚Ì”äŠr‚Í‘å•¶š¬•¶š‚ğ‹æ•Ê‚µ‚È‚¢‚±‚Æ‚É’ˆÓ
 struct Less
 {
 	bool operator () (PCWSTR lhs, PCWSTR rhs) const throw()
 	{
-		return wcscmp(lhs, rhs) < 0;
+		return _wcsicmp(lhs, rhs) < 0;
+	}
+
+	template < typename T, typename U >
+	bool operator () (const std::pair<T, U>& lhs, const std::pair<T, U>& rhs) const throw()
+	{
+		return operator () (lhs.first, rhs);
+	}
+
+	template < typename T, typename U >
+	bool operator () (const std::pair<T, U>& lhs, const T& rhs) const throw()
+	{
+		return operator () (lhs.first, rhs);
+	}
+
+	template < typename T, typename U >
+	bool operator () (const T& lhs, const std::pair<T, U>& rhs) const throw()
+	{
+		return operator () (lhs, rhs.first);
 	}
 };
 
