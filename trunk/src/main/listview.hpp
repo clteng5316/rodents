@@ -50,6 +50,7 @@ private:
 public:
 	HRESULT	GetCurrentFolder(REFINTF pp) const throw();
 	HRESULT	GetCurrentView(REFINTF pp) const throw();
+	HRESULT GetItemAt(IShellItem** pp, int index) const throw();
 	void	SetExtendedStyle(UINT style, bool value) throw();
 
 	ref<IShellItem>	item(int index) const;
