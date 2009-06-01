@@ -582,11 +582,9 @@ void ListView::onPreview(int index)
 	{
 		preview_from = m_hwnd;
 
-		ref<IFolderView2>	fv2;
 		ref<IShellItem>		item;
 
-		if (SUCCEEDED(GetCurrentView(&fv2)) && 
-			SUCCEEDED(fv2->GetItem(index, IID_PPV_ARGS(&item))))
+		if SUCCEEDED(GetItemAt(&item, index))
 		{
 			int	order;
 			if (!preview_item || item->Compare(preview_item, SICHINT_CANONICAL, &order) != S_OK)
@@ -881,6 +879,21 @@ HRESULT ListView::GetCurrentView(REFINTF pp) const throw()
 		return E_UNEXPECTED;
 	}
 	return m_browser->GetCurrentView(pp.iid, pp.pp);
+}
+
+HRESULT ListView::GetItemAt(IShellItem** pp, int index) const throw()
+{
+	ref<IFolderView2>	fv2;
+	if SUCCEEDED(GetCurrentView(&fv2))
+		return fv2->GetItem(index, IID_PPV_ARGS(pp));
+
+	ref<IFolderView>	fv;
+	ILPtr				leaf;
+	if (SUCCEEDED(GetCurrentView(&fv)) &&
+		SUCCEEDED(fv->Item(index, &leaf)))
+		return PathCreate(pp, null, m_path, leaf);
+
+	return E_NOTIMPL;
 }
 
 void ListView::SetCurrentFolder(const ITEMIDLIST* path, bool copy) throw()
