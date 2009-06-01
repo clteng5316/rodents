@@ -693,10 +693,10 @@ local ToolBar_items =
 			{ name = "Pane : 詳細"      , execute = bind_config("detail_pane") },
 			{ name = "Pane : プレビュー", execute = bind_config("preview_pane") },
 			null,
-			{ name = "FVF : NAMESELECT"   , execute = bind_config("folderview_flag", FVF.NAMESELECT) },
-			{ name = "FVF : FULLROWSELECT", execute = bind_config("folderview_flag", FVF.FULLROWSELECT) },
-			{ name = "FVF : CHECKBOX"     , execute = bind_config("folderview_flag", FVF.CHECKBOX) },
-			{ name = "FVF : CHECKBOX3"    , execute = bind_config("folderview_flag", FVF.CHECKBOX3) },
+			{ name = "FWF : NAMESELECT"   , execute = bind_config("folderview_flag", FWF.NAMESELECT) },
+			{ name = "FWF : FULLROWSELECT", execute = bind_config("folderview_flag", FWF.FULLROWSELECT) },
+			{ name = "FWF : CHECKBOX"     , execute = bind_config("folderview_flag", FWF.CHECKBOX) },
+			{ name = "FWF : CHECKBOX3"    , execute = bind_config("folderview_flag", FWF.CHECKBOX3) },
 		]
 	},
 
