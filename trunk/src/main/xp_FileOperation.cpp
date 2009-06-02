@@ -135,7 +135,7 @@ namespace
 		wcscpy_s(reg, ext);
 		wcscat_s(reg, L"\\ShellNew");
 		// レジストリの単純ShellNewエントリを探す
-		if SUCCEEDED(RegGetString(HKEY_CLASSES_ROOT, reg, L"FileName", srcfile, MAX_PATH))
+		if SUCCEEDED(RegGetString(srcfile, HKEY_CLASSES_ROOT, reg, L"FileName"))
 		{
 			if (PathIsRelative(srcfile))
 				PathCombine(srcfile, templates, srcfile);

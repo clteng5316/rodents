@@ -262,7 +262,7 @@ namespace
 			verb = verbbuf;
 			if (verb[0] == L'.')
 			{	// verb = Šg’£Žq
-				if FAILED(RegGetAssocExe(verb, exepath))
+				if FAILED(RegGetAssocExe(exepath, verb))
 					return E_INVALIDARG; // ŠÖ˜A•t‚¯‚³‚ê‚½EXE‚ðŽæ“¾‚Å‚«‚È‚©‚Á‚½
 				exe = exepath;
 			}
