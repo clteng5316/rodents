@@ -833,7 +833,7 @@ editor <- function(hwnd)
 
 try
 {
-	if (!import("config"))
+	if (!import("user"))
 	{
 		// copy user.sample.nut to user.nut if not found.
 		os.copy("ROOT/lib/user.sample.nut", "ROOT/lib/user.nut");

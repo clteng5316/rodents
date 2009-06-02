@@ -298,13 +298,9 @@ string	KnownFolderEncode(PCWSTR path);
 //==========================================================================================================================
 // Registry
 
-HRESULT	RegGetString(HKEY hKey, PCWSTR subkey, PCWSTR value, WCHAR outString[], size_t cch);
-template < size_t sz >
-inline HRESULT RegGetString(HKEY hKey, PCWSTR subkey, PCWSTR value, WCHAR (&outString)[sz])
-{
-	return RegGetString(hKey, subkey, value, outString, sz);
-}
-HRESULT	RegGetAssocExe(PCWSTR extension, WCHAR exe[MAX_PATH]);
+HRESULT	RegGetString(WCHAR ret[MAX_PATH], HKEY hKey, PCWSTR subkey, PCWSTR value);
+HRESULT	RegGetStringV(WCHAR ret[MAX_PATH], HKEY hKey, PCWSTR subkey, PCWSTR value, ...);
+HRESULT	RegGetAssocExe(WCHAR exe[MAX_PATH], PCWSTR extension);
 
 //==========================================================================================================================
 // Link (Shortcut)

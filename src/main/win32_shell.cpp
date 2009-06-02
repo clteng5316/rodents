@@ -188,17 +188,17 @@ HRESULT PathGetBrowsable(IShellItem* item)
 
 	PCWSTR ext = PathFindExtension(path);
 	WCHAR key[MAX_PATH], def[MAX_PATH], command[MAX_PATH], buffer[MAX_PATH];
-	if FAILED(RegGetString(HKEY_CLASSES_ROOT, ext, NULL, key))
+	if FAILED(RegGetString(key, HKEY_CLASSES_ROOT, ext, NULL))
 		return S_OK; // 未登録項目
 	swprintf_s(buffer, L"%s\\shell", key);
-	if FAILED(RegGetString(HKEY_CLASSES_ROOT, buffer, NULL, def))
+	if FAILED(RegGetString(def, HKEY_CLASSES_ROOT, buffer, NULL))
 		return S_OK; // エラー
 	if (_wcsicmp(def, L"explore") == 0)
 		return S_OK; // エクスプローラに関連付け
 	if (str::empty(def))
 		lstrcpy(def, L"open");
 	swprintf_s(buffer, L"%s\\shell\\%s\\command", key, def);
-	if FAILED(RegGetString(HKEY_CLASSES_ROOT, buffer, NULL, command))
+	if FAILED(RegGetString(command, HKEY_CLASSES_ROOT, buffer, NULL))
 		return S_OK;
 
 	// 何かアプリケーションに関連付けられていた。

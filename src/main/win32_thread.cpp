@@ -324,7 +324,7 @@ void Sound(PCWSTR path) throw()
 		WCHAR filename[MAX_PATH];
 
 		if (PathIsRelative(path))
-			if SUCCEEDED(RegGetString(HKEY_CURRENT_USER, path, null, filename, MAX_PATH))
+			if SUCCEEDED(RegGetString(filename, HKEY_CURRENT_USER, path, null))
 				path = filename;
 
 		if (PathFileExists(path))
