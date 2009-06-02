@@ -1,4 +1,4 @@
-﻿// config.nut
+﻿// user.nut
 //
 // 以下の処理を修正してください。
 // - config.keymap

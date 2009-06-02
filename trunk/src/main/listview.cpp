@@ -1981,8 +1981,11 @@ void set_folderview_flag(int value)
 {
 	if (folderview_flag != value && 0 <= value && value < lengthof(FWF_SELECT))
 	{
+		if (WINDOWS_VERSION < WINDOWS_VISTA && value == 3)
+			throw sq::Error(L"Windows XP or eariler version does not support 3");
 		// CHECK と CHECK3 を直接変更すると動作がおかしくなるので、いったんCHECK=OFFを経由する
-		bool reset = ((folderview_flag == 3 && value == 2) || (folderview_flag == 2 && value == 3));
+		bool reset = ((folderview_flag == 3 && value == 2) ||
+					  (folderview_flag == 2 && value == 3));
 		folderview_flag = value;
 		for (Window* w = Window::headobj(); w; w = w->nextobj())
 		{

@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "sq.hpp"
+#include "win32.hpp"
 
 //================================================================================
 
@@ -62,6 +63,9 @@ namespace
 
 SQInteger def_config(sq::VM v)
 {
+	// 環境依存の設定パラメータを初期化する。
+	folderview_flag = (WINDOWS_VERSION < WINDOWS_VISTA ? 0 : 1);
+
 	// object から派生する無名クラスを作成する。
 	sq_pushroottable(v);
 	sq::push(v, L"object");

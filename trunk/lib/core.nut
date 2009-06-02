@@ -829,17 +829,17 @@ editor <- function(hwnd)
 }
 
 //=============================================================================
-// Overwrite default behaviors with config.nut.
+// Overwrite default behaviors with user.nut.
 
 try
 {
 	if (!import("config"))
 	{
-		// copy config.sample.nut to config.nut if not found.
-		os.copy("ROOT/lib/config.sample.nut", "ROOT/lib/config.nut");
+		// copy user.sample.nut to user.nut if not found.
+		os.copy("ROOT/lib/user.sample.nut", "ROOT/lib/user.nut");
 	}
 }
 catch (e)
 {
-	alert("ユーザスクリプトでエラーが発生 (config.nut)", e, null, ERROR)
+	alert("ユーザスクリプトでエラーが発生 (user.nut)", e, null, ERROR)
 }

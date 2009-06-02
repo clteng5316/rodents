@@ -451,10 +451,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\config.sample.nut"
-				>
-			</File>
-			<File
 				RelativePath="..\..\lib\core.nut"
 				>
 			</File>
@@ -474,15 +470,19 @@
 				RelativePath="..\..\lib\main.nut"
 				>
 			</File>
+			<File
+				RelativePath="..\..\lib\user.sample.nut"
+				>
+			</File>
 			<Filter
 				Name="user"
 				>
 				<File
-					RelativePath="..\..\lib\config.nut"
+					RelativePath="..\..\lib\settings.nut"
 					>
 				</File>
 				<File
-					RelativePath="..\..\lib\settings.nut"
+					RelativePath="..\..\lib\user.nut"
 					>
 				</File>
 			</Filter>
