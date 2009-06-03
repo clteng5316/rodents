@@ -8,9 +8,32 @@ Squirrel VM または標準ライブラリに対して以下の変更を行っ�
 
   * null に対する foreach でエラーになりません。ループを実行せずに処理を継続します。
   * format("%s") でオブジェクトを文字列に自動変換します。
-  * print(...) に2個以上の引数を与えた場合、print(format(...)) と扱われます。
+  * print(...) に2個以上の引数を与えた場合、print( format(...) ) と扱われます。
   * string に以下のメソッドが追加されています。
-    * startswith ( prefix, [start], [end] )
-    * endswith ( suffix, [start], [end] )
-    * replace ( from, to, [count] )
-    * rfind ( substr, [start] )
+    * startswith ( _prefix_, _start_, _end_ )
+    * endswith ( _suffix_, _start_, _end_ )
+    * replace ( _from_, to_, _count_ )
+    * rfind ( _substr_, _start_ )
+
+= ライブラリ =
+== グローバルシンボル ==
+  * import ( filename )
+    * ファイル ROOT/lib/filename.nut をロードします。
+  * getslot ( _obj_ , _slot1_ , _slot2_ , ... , _slotN_ )
+    * obj[slot1][slot2]...[slotN] を返します。途中でキーが見つからない場合は null が返ります。
+  * class object
+    * 存在しないスロットに対するアクセスを、get_xxx() または set_xxx() に転送します。
+
+== I/O ==
+=== class Reader ===
+テキストファイルを行単位で読み込みます。行は末尾の改行を含みません。
+
+  * line : 現在の行です。
+  * read () : 次の行を読み込みます。while ループで使用します。
+  * _nexti () : 次の行を読み込みます。foreach ループで使用します。
+
+=== class Writer ===
+テキストファイルを書き出します。既存のファイルは上書きされます。
+
+  * print ( _value_ ) : 文字列を書き出します。
+  * write ( _value_ ) : 行を書き出します。改行が付与されます。
