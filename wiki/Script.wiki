@@ -1,4 +1,9 @@
 #summary Squirrel スクリプトとライブラリの解説。
+#sidebar TableOfContents
+
+----
+[Manual] > [Script]
+----
 
 = 概要 =
 スクリプト言語として [http://squirrel-lang.org/ Squirrel] を使用しています。バージョン Squirrel 3.0 alpha 1 Unicode版 をベースにしています。 [http://squirrel-lang.org/doc/sqstdlib2.html 標準ライブラリ] のうち math と string モジュールが有効化されています。
@@ -28,13 +33,16 @@ Squirrel VM または標準ライブラリに対して以下の変更を行っ�
 === class Reader ===
 テキストファイルを行単位で読み込みます。行は末尾の改行を含みません。
 
+  * constructor ( _path_ )
   * line : 現在の行です。
   * read () : 次の行を読み込みます。while ループで使用します。
   * nexti () : 次の行を読み込みます。foreach ループで使用します。
 
 === class Writer ===
 テキストファイルを書き出します。既存のファイルは上書きされます。
+デフォルトのエンコーディングは UTF8 (BOM) です。
 
+  * constructor ( _path_ , _encoding_ = "utf8" )
   * print ( _value_ ) : 文字列を書き出します。
   * write ( _value_ ) : 行を書き出します。改行が付与されます。
 
