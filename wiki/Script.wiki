@@ -24,7 +24,7 @@ Squirrel VM または標準ライブラリに対して以下の変更を行っ�
   * import ( filename )
     * ファイル ROOT/lib/filename.nut をロードします。
   * getslot ( _obj_ , _slot1_ , _slot2_ , ... , _slotN_ )
-    * obj[slot1][slot2]...[slotN] を返します。途中でキーが見つからない場合は null が返ります。
+    * `obj[slot1][slot2]...[slotN]` を返します。途中でキーが見つからない場合は null を返します。
   * class object
     * 存在しないスロットに対するアクセスを、get_xxx () または set_xxx() に転送します。
 
