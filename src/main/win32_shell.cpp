@@ -742,9 +742,10 @@ HRESULT FileNew(IShellView* view, bool folder)
 					else
 					{
 						NewFileMenuAddMnemonic(info.hSubMenu);
-						RECT rc;
+						RECT	rc;
 						::GetWindowRect(hwnd, &rc);
-						uID = TrackPopupMenu(info.hSubMenu, TPM_CENTERALIGN | TPM_VCENTERALIGN | TPM_RETURNCMD, RECT_CENTER(rc), 0, hwnd, null);
+						POINT	pt = { RECT_CENTER(rc) };
+						uID = MenuPopup(menu, info.hSubMenu, TPM_CENTERALIGN | TPM_VCENTERALIGN | TPM_RETURNCMD, pt, hwnd);
 					}
 					if (ID_SHELL_FIRST <= uID && uID <= ID_SHELL_LAST)
 					{

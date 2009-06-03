@@ -153,14 +153,9 @@ HRESULT MenuPopup(POINT pt, IContextMenu* menu, PCWSTR defaultCommand) throw()
 	}
 
 	HWND hwnd = GetWindow();
+	UINT uID = MenuPopup(menu, handle, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_RECURSE, pt, hwnd);
 
-	if (hwnd)
-		::SetWindowSubclass(hwnd, ContextMenuProc, 0, (DWORD_PTR)(IContextMenu*)menu);
-	INT id = ::TrackPopupMenuEx(handle, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_RECURSE, pt.x, pt.y, hwnd, null);
-	if (hwnd)
-		::RemoveWindowSubclass(hwnd, ContextMenuProc, 0);
-
-	if (id == 0)
+	if (uID == 0)
 	{	// キャンセル
 		return S_FALSE;
 	}
@@ -169,13 +164,13 @@ HRESULT MenuPopup(POINT pt, IContextMenu* menu, PCWSTR defaultCommand) throw()
 	EndMenu();
 	PumpMessage();
 
-	if (id == ID_DEFAULT)
+	if (uID == ID_DEFAULT)
 	{
 		return S_DEFAULT;
 	}
-	else if (ID_SHELL_FIRST <= id && id <= ID_SHELL_LAST)
+	else if (ID_SHELL_FIRST <= uID && uID <= ID_SHELL_LAST)
 	{	// シェルメニュー
-		UINT offset = id - ID_SHELL_FIRST;
+		UINT offset = uID - ID_SHELL_FIRST;
 		if (IsRenameCommand(menu, offset))
 		{
 			return S_RENAME;
@@ -205,6 +200,17 @@ HRESULT MenuPopup(POINT pt, IShellView* view, ICommDlgBrowser2* browser) throw()
 	hr = browser->GetDefaultMenuText(view, text, MAX_PATH);
 
 	return MenuPopup(pt, menu, SUCCEEDED(hr) ? text : null);
+}
+
+UINT MenuPopup(IContextMenu* menu, HMENU handle, UINT tpm, POINT pt, HWND hwnd)
+{
+	if (hwnd)
+		::SetWindowSubclass(hwnd, ContextMenuProc, 0, (DWORD_PTR)menu);
+	UINT uID = ::TrackPopupMenuEx(handle, tpm, pt.x, pt.y, hwnd, null);
+	if (hwnd)
+		::RemoveWindowSubclass(hwnd, ContextMenuProc, 0);
+
+	return uID;
 }
 
 //==========================================================================================================================
