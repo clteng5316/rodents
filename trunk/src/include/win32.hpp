@@ -199,6 +199,7 @@ typedef void (*MenuFill)(HMENU menu, UINT id);
 
 HMENU	MenuAppend(HMENU menu, UINT flags, UINT id, PCWSTR name);
 int		MenuPopup(POINT ptScreen, MenuFill fill) throw();
+UINT	MenuPopup(IContextMenu* menu, HMENU handle, UINT tpm, POINT pt, HWND hwnd);
 HRESULT MenuPopup(POINT pt, IContextMenu* menu, PCWSTR defaultCommand) throw();
 HRESULT MenuPopup(POINT pt, IShellView* view, ICommDlgBrowser2* browser) throw();
 
