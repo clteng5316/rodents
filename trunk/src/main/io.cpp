@@ -254,7 +254,8 @@ ENCODING_NAMES[] =
 	{ L"euc"		, ENCODING_EUCJP },
 	{ L"eucjp"		, ENCODING_EUCJP },
 	{ L"jis"		, ENCODING_JIS },
-	{ L"utf8"		, ENCODING_UTF8 },
+	{ L"utf8n"		, ENCODING_UTF8 },
+	{ L"utf8"		, ENCODING_UTF8_BOM },
 };
 
 static PCWSTR fuzzy_skip(PCWSTR s)
@@ -292,7 +293,7 @@ static Encoding parse_encoding_name(PCWSTR name) throw(...)
 void Writer::constructor(sq::VM v)
 {
 	if (v.gettop() < 3)
-		m_encoding = ENCODING_ASCII;
+		m_encoding = ENCODING_UTF8_BOM;
 	else
 		m_encoding = parse_encoding_name(v.get<PCWSTR>(3));
 	StreamCreate(v, 2, STGM_WRITE | STGM_CREATE, &m_stream);
