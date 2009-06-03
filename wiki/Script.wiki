@@ -1,5 +1,4 @@
 #summary Squirrel スクリプトとライブラリの解説。
-#sidebar TableOfContents
 
 ----
 [Manual] > [Script]
