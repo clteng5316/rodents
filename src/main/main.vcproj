@@ -515,10 +515,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\doc\reference.html"
-				>
-			</File>
-			<File
 				RelativePath="..\..\doc\style.css"
 				>
 			</File>
