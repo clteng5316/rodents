@@ -134,15 +134,23 @@ SQInteger sq::newinstance(HSQUIRRELVM v, object* self) throw()
 
 //================================================================================
 
-sq::Error::Error()
+sq::Error::Error() throw()
 {
 }
 
-sq::Error::Error(PCWSTR format, ...)
+sq::Error::Error(PCWSTR format, ...) throw()
 {
 	va_list args;
 	va_start(args, format);
-	raise_va(sq::vm, format, args);
+	raise(sq::vm, format, args);
+	va_end(args);
+}
+
+sq::Error::Error(HRESULT hr, PCWSTR format, ...) throw()
+{
+	va_list args;
+	va_start(args, format);
+	raise(sq::vm, hr, format, args);
 	va_end(args);
 }
 
@@ -150,15 +158,31 @@ SQInteger sq::raise(HSQUIRRELVM v, PCWSTR format, ...) throw()
 {
 	va_list args;
 	va_start(args, format);
-	SQInteger r = raise_va(v, format, args);
+	SQInteger r = raise(v, S_OK, format, args);
 	va_end(args);
 	return r;
 }
 
-SQInteger sq::raise_va(HSQUIRRELVM v, PCWSTR format, va_list args) throw()
+SQInteger sq::raise(HSQUIRRELVM v, HRESULT hr, PCWSTR format, va_list args) throw()
 {
-	WCHAR buffer[1024];
+	WCHAR	buffer[1024];
+	WCHAR	message[1024];
+
 	vswprintf_s(buffer, format, args);
+
+	if (FAILED(hr) && 0 < FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, null, hr,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			message, lengthof(message), null))
+	{
+		size_t	len;
+		len = wcslen(message);
+		while (len > 0 && iswspace(message[len - 1])) { --len; }
+		message[len] = '\0';
+		len = wcslen(buffer);
+		swprintf_s(buffer + len, lengthof(buffer) - len,
+			L"\n(0x%08X: %s)", hr, message);
+	}
+
 	return sq_throwerror(v, buffer);
 }
 
