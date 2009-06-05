@@ -1277,7 +1277,7 @@ void ListView::set_path(std::pair<PCWSTR, IShellItem*> value)
 		hr = BrowseObject(ILCreate(value.second), SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
 	}
 	if FAILED(hr)
-		throw sq::Error(L"ListView.set_path() failed");
+		throw sq::Error(hr, L"ListView.set_path()");
 }
 
 /*
