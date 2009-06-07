@@ -357,23 +357,30 @@ function settings_save()
 
 //=============================================================================
 
+local function getattr(obj, name, defval = null)
+{
+	local attr = getslot(obj, name)
+	if (typeof(attr) == "function")
+		attr = attr()
+	return attr == null ? defval : attr
+}
+
 local function menu_for_array(children)
 {
 	local function fill(children)
 	{
 		foreach (i in children)
 		{
-			local name
 			if (i == null)
-				this.append(i, MF_SEPARATOR, null)
-			else if ((name = getslot(i, "name")) != null)
-			{
-				if (typeof(name) == "function")
-					name = name()
-				this.append(i, 0, name)
+			{	// separator
+				this.append(i, MF.SEPARATOR, null)
 			}
 			else
-				this.append(i, 0, i.tostring())
+			{
+				local name = getattr(i, "name") || i.tostring()
+				local enabled = getattr(i, "enabled", true)
+				this.append(i, (enabled ? 0 : MF.DISABLED), name)
+			}
 		}
 	}
 
@@ -402,7 +409,7 @@ local function ToolBar_onExecute(index)
 
 local function is_visible_folder(path)
 {
-	return (path.attr & (SFGAO.HIDDEN | SFGAO.FOLDER)) == (SFGAO.FOLDER)
+	return (path.attr & (SFGAO.HIDDEN | SFGAO.FOLDER)) == SFGAO.FOLDER
 }
 
 local function Path_onExecute(index)
@@ -670,6 +677,7 @@ local ToolBar_items =
 					return format("ゴミ箱を空にする\t(%s)",
 						pretty_size(os.trash_size()))
 				},
+				enabled = @() os.trash_size() > 0,
 				execute = os.trash_purge
 			},
 			{ name = "お気に入りに追加", execute = add_to_bookmark },

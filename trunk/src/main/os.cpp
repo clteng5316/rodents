@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include <time.h>
+#include "math.hpp"
 #include "ref.hpp"
 #include "sq.hpp"
 #include "stream.hpp"
@@ -197,7 +198,10 @@ static int trash_size()
 {
 	SHQUERYRBINFO info = { sizeof(SHQUERYRBINFO) };
 	SHQueryRecycleBin(null, &info);
-	return (int)((info.i64Size + 1023) / 1024); // int32Ç…é˚Ç‹ÇÈÇÊÇ§kBÇ≈ï‘Ç∑ÅB
+	if (info.i64NumItems < 1)
+		return 0;
+	// int32Ç…é˚Ç‹ÇÈÇÊÇ§kBÇ≈ï‘Ç∑ÅB0 Ç…Ç»ÇÁÇ»Ç¢ÇÊÇ§í≤êÆÇ∑ÇÈÅB
+	return math::max(1, (int)((info.i64Size + 1023) / 1024));
 }
 
 static void trash_purge()
