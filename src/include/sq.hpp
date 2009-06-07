@@ -21,8 +21,8 @@ namespace sq
 		Error(HRESULT hr, PCWSTR format, ...) throw();
 	};
 
-	SQInteger	raise(HSQUIRRELVM v, PCWSTR format, ...) throw();
-	SQInteger	raise(HSQUIRRELVM v, HRESULT hr, PCWSTR format, va_list args) throw();
+	SQInteger	raise(HSQUIRRELVM v, HRESULT hr, PCWSTR format, ...) throw();
+	SQInteger	raise_va(HSQUIRRELVM v, HRESULT hr, PCWSTR format, va_list args) throw();
 	void __declspec(noreturn) bad_cast(HSQUIRRELVM v, const type_info& from, const type_info& to) throw(Error);
 	void		newclass(HSQUIRRELVM v, const type_info& type, const type_info& base, SQFUNCTION constructor) throw();
 	SQInteger	newinstance(HSQUIRRELVM v, object* self) throw();

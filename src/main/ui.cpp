@@ -40,7 +40,7 @@ namespace
 	static SQInteger menu_append(sq::VM v)
 	{
 		if (!menu_handle)
-			return sq::raise(v, L"unexpected call of menu.append()");
+			return sq::raise(v, E_UNEXPECTED, L"menu.append()");
 
 		SQInteger	id = sq_getsize(v, 1);
 		UINT		flags = v.get<UINT>(3);

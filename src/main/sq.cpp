@@ -142,7 +142,7 @@ sq::Error::Error(PCWSTR format, ...) throw()
 {
 	va_list args;
 	va_start(args, format);
-	raise(sq::vm, format, args);
+	raise_va(sq::vm, S_OK, format, args);
 	va_end(args);
 }
 
@@ -150,28 +150,31 @@ sq::Error::Error(HRESULT hr, PCWSTR format, ...) throw()
 {
 	va_list args;
 	va_start(args, format);
-	raise(sq::vm, hr, format, args);
+	raise_va(sq::vm, hr, format, args);
 	va_end(args);
 }
 
-SQInteger sq::raise(HSQUIRRELVM v, PCWSTR format, ...) throw()
+SQInteger sq::raise(HSQUIRRELVM v, HRESULT hr, PCWSTR format, ...) throw()
 {
 	va_list args;
 	va_start(args, format);
-	SQInteger r = raise(v, S_OK, format, args);
+	SQInteger r = raise_va(v, S_OK, format, args);
 	va_end(args);
 	return r;
 }
 
-SQInteger sq::raise(HSQUIRRELVM v, HRESULT hr, PCWSTR format, va_list args) throw()
+SQInteger sq::raise_va(HSQUIRRELVM v, HRESULT hr, PCWSTR format, va_list args) throw()
 {
 	WCHAR	buffer[1024];
 	WCHAR	message[1024];
 
-	vswprintf_s(buffer, format, args);
+	if (format)
+		vswprintf_s(buffer, format, args);
+	else
+		buffer[0] = L'\0';
 
-	if (FAILED(hr) && 0 < FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, null, hr,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+	if (FAILED(hr) && 0 < FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
+			null, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			message, lengthof(message), null))
 	{
 		size_t	len;
@@ -188,7 +191,7 @@ SQInteger sq::raise(HSQUIRRELVM v, HRESULT hr, PCWSTR format, va_list args) thro
 
 void sq::bad_cast(HSQUIRRELVM v, const type_info& from, const type_info& to)
 {
-	throw Error(L"bad cast: from %S to %S", getname(from), getname(to));
+	throw Error(E_INVALIDARG, L"bad cast: from %S to %S", getname(from), getname(to));
 }
 
 static PCWSTR simplify_src(PCWSTR src)
@@ -410,13 +413,14 @@ void sq::get(HSQUIRRELVM v, SQInteger idx, object** value)
 
 void sq::get(HSQUIRRELVM v, SQInteger idx, REFINTF value)
 {
-	SQUserPointer self;
-	SQUserPointer tag;
+	HRESULT			hr;
+	SQUserPointer	self;
+	SQUserPointer	tag;
 	if (SQ_FAILED(sq_getuserdata(v, idx, &self, &tag)) ||
 		tag != IUnknown_tag ||
-		FAILED((*(IUnknown**)self)->QueryInterface(value.iid, value.pp)))
+		FAILED(hr = (*(IUnknown**)self)->QueryInterface(value.iid, value.pp)))
 	{
-		throw Error(L"IUnknown.QueryInterface() failed (type=0x%08X)", sq_gettype(v, idx));
+		throw Error(hr, L"IUnknown.QueryInterface() failed (type=0x%08X)", sq_gettype(v, idx));
 	}
 
 	// QueryInterface で参照カウントが増えすぎているので、再び減らす。

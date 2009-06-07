@@ -414,11 +414,12 @@ static HRESULT load(HSQUIRRELVM v, PCWSTR filename) throw()
 	else if (hr == E_FILENOTFOULD || hr == STG_E_FILENOTFOUND)
 	{
 		// do not throw if file not found.
+		// FIXME: squirrel‘w‚ÅƒNƒ‰ƒX•Êcatch‚ğÀ‘•‚·‚×‚«‚©‚àB
 		return S_FALSE;
 	}
 	else
 	{
-		sq::raise(v, _S(STR_E_NOFILE), path);
+		sq::raise(v, hr, _S(STR_E_NOFILE), path);
 		return hr;
 	}
 }

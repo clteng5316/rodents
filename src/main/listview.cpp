@@ -359,8 +359,20 @@ bool ListView::onGesture(const MSG& msg)
 		return false;
 
 	// ヘッダでは左ダブルクリックは受け入れない。
-	if (msg.message == WM_LBUTTONDBLCLK && msg.hwnd == m_listview.GetHeader())
-		return false;
+	if (msg.message == WM_LBUTTONDBLCLK)
+	{
+		HeaderH header = m_listview.GetHeader();
+		if (msg.hwnd == header)
+		{
+			if (header.HitTest(GET_XY_LPARAM(msg.lParam)) < 0)
+			{
+				// ヘッダの何もない領域のダブルクリックは幅調整。
+				// サブクラス化する手間を省くためジェスチャ内で処理している。
+				adjust();
+			}
+			return false;
+		}
+	}
 
 	// 左クリックのみのジェスチャは受け入れない。
 	if (msg.message == WM_LBUTTONDOWN || msg.message == WM_LBUTTONUP)

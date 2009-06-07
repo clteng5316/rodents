@@ -32,6 +32,7 @@ function bind_this(fn, self, ...)
 	}
 }
 
+// [ fn(i) for i in iterable ]
 function map(iterable, fn)
 {
 	local result = []
@@ -50,7 +51,7 @@ function escape(s)
 	return s.replace("\\", "\\\\").replace("\"", "\\\"")
 }
 
-// Concat array
+// Concat string
 function concat(items, item, sep = "\r\n")
 {
 	if (items)
@@ -157,22 +158,25 @@ const WEST		= 3
 const EAST		= 4
 const CENTER	= 5
 
-// MB
-const MB_OK                = 0x00000000
-const MB_OKCANCEL          = 0x00000001
-const MB_YESNOCANCEL       = 0x00000003
-const MB_YESNO             = 0x00000004
-const MB_RETRYCANCEL       = 0x00000005
-const MB_CANCELTRYCONTINUE = 0x00000006
+// MB : MessageBox
+enum MB
+{
+	OK                = 0x00000000,
+	OKCANCEL          = 0x00000001,
+	YESNOCANCEL       = 0x00000003,
+	YESNO             = 0x00000004,
+	RETRYCANCEL       = 0x00000005,
+	CANCELTRYCONTINUE = 0x00000006,
+}
 
-// MF
-const MF_SEPARATOR      = 0x00000800
-const MF_ENABLED        = 0x00000000
-const MF_GRAYED         = 0x00000001
-const MF_DISABLED       = 0x00000002
-const MF_UNCHECKED      = 0x00000000
-const MF_CHECKED        = 0x00000008
-const MF_POPUP          = 0x00000010
+// MF : Menu Flags
+enum MF
+{
+	DISABLED  = 0x00000002,
+	CHECKED   = 0x00000008,
+	POPUP     = 0x00000010,
+	SEPARATOR = 0x00000800,
+}
 
 // FVM : ListView.mode
 enum FVM
@@ -203,7 +207,7 @@ enum FP
 	HOTTRACK,
 }
 
-// SFGAO
+// SFGAO : ShellFolder.GetAttributesOf
 enum SFGAO
 {
 	CANRENAME         = 0x00000010,
