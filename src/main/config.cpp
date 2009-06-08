@@ -64,7 +64,18 @@ namespace
 SQInteger def_config(sq::VM v)
 {
 	// 環境依存の設定パラメータを初期化する。
-	folderview_flag = (WINDOWS_VERSION < WINDOWS_VISTA ? 0 : 1);
+	if (WINDOWS_VERSION < WINDOWS_VISTA)
+	{
+		folderview_flag = 0;
+		detail_pane = false;
+		navigation_pane = false;
+		preview_pane = false;
+	}
+
+	// 環境依存の設定
+	SHELLFLAGSTATE	sh;
+	SHGetSettings(&sh, SSF_SHOWALLOBJECTS);
+	show_hidden_files = (sh.fShowAllObjects != 0);
 
 	// object から派生する無名クラスを作成する。
 	sq_pushroottable(v);
