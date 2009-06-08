@@ -3,11 +3,58 @@
 #include "stdafx.h"
 #include "hwnd.hpp"
 #include "unknown.hpp"
+#include "math.hpp"
 
 //==========================================================================================================================
 
 namespace
 {
+	const size_t		MAX_HISTORY = 20;
+
+	class History
+	{
+	private:
+		std::vector<ITEMIDLIST*>	m_items;
+		ssize_t						m_pos;
+	public:
+		History() : m_pos(0)	{}
+		~History()
+		{
+			pop_back(0);
+		}
+		void push(const ITEMIDLIST* item) throw()
+		{
+			if (!m_items.empty())
+				pop_back(m_pos + 1);
+			if (m_items.size() > MAX_HISTORY)
+				pop_front();
+			m_pos = m_items.size();
+			m_items.push_back(ILClone(item));
+		}
+		const ITEMIDLIST* operator [] (ssize_t diff) const throw()
+		{
+			ssize_t newpos = m_pos + diff;
+			if (newpos < 0 || newpos >= m_items.size())
+				return null;
+			return m_items[newpos];
+		}
+		void go(ssize_t diff) throw()
+		{
+			m_pos = math::clamp<ssize_t>(m_pos + diff, 0, m_items.size());
+		}
+		void pop_back(size_t pos) throw()
+		{
+			for (size_t i = pos + 1; i < m_items.size(); ++i)
+				ILFree(m_items[i]);
+			m_items.resize(pos);
+		}
+		void pop_front() throw()
+		{
+			ASSERT(!m_items.empty());
+			m_items.erase(m_items.begin());
+		}
+	};
+
 	class XpExplorerBrowser :
 		public Unknown< implements<IExplorerBrowser, IObjectWithSite> >,
 		public Hwnd
@@ -17,10 +64,13 @@ namespace
 		ref<IExplorerBrowserEvents>	m_handler;
 		Hwnd						m_defview;
 		EXPLORER_BROWSER_OPTIONS	m_options;
-		ILPtr						m_item;
 		ref<IShellView>				m_view;
 		FOLDERSETTINGS				m_settings;
 		RECT						m_bounds;
+		History						m_history;
+
+		const ITEMIDLIST* get_m_item() const throw()	{ return m_history[0]; }
+		__declspec(property(get=get_m_item)) const ITEMIDLIST* m_item;
 
 	public: // IExplorerBrowser
 		IFACEMETHODIMP Initialize(HWND hwndParent, const RECT* rc, const FOLDERSETTINGS* fs);
@@ -47,7 +97,7 @@ namespace
 		void	InvokeViewCreated(IShellView* view) const;
 		void	InvokeNavigationComplete(const ITEMIDLIST* folder) const;
 		void	InvokeNavigationFailed(const ITEMIDLIST* folder) const;
-		HRESULT GoAbsolute(const ITEMIDLIST* item) throw();
+		HRESULT GoAbsolute(const ITEMIDLIST* item, ssize_t diff) throw();
 		HRESULT GoRelative(const ITEMIDLIST* relative) throw();
 		HRESULT GoUp() throw();
 		HRESULT GoBack() throw();
@@ -181,7 +231,7 @@ IFACEMETHODIMP XpExplorerBrowser::BrowseToIDList(const ITEMIDLIST* pidl, UINT fl
 	else if (flags & SBSP_RELATIVE)
 		return GoRelative(pidl);
 	else
-		return GoAbsolute(pidl);
+		return GoAbsolute(pidl, 0);
 }
 
 IFACEMETHODIMP XpExplorerBrowser::BrowseToObject(IUnknown *punk, UINT flags)
@@ -192,11 +242,10 @@ IFACEMETHODIMP XpExplorerBrowser::BrowseToObject(IUnknown *punk, UINT flags)
 		return GoForward();
 	else if (flags & SBSP_PARENT)
 		return GoUp();
+	else if (ILPtr item = ILCreate(punk))
+		return GoAbsolute(item, 0);
 	else
 		return E_NOTIMPL;
-
-	// if SUCCEEDED(punk->QueryInterface(&pShellItem))
-	//  	return GoAbsolute(pShellItem->ITEMIDLIST);
 }
 
 IFACEMETHODIMP XpExplorerBrowser::FillFromObject(IUnknown *punk, EXPLORER_BROWSER_FILL_FLAGS flags)
@@ -234,7 +283,7 @@ IFACEMETHODIMP XpExplorerBrowser::GetSite(REFIID iid, void** pp)
 
 //==========================================================================================================================
 
-HRESULT XpExplorerBrowser::GoAbsolute(const ITEMIDLIST* item) throw()
+HRESULT XpExplorerBrowser::GoAbsolute(const ITEMIDLIST* item, ssize_t diff) throw()
 {
 	if (!item)
 		return E_INVALIDARG;
@@ -251,7 +300,7 @@ HRESULT XpExplorerBrowser::GoAbsolute(const ITEMIDLIST* item) throw()
 		if (ILIsParent(item, m_item, FALSE))
 		{
 			size_t size = ILGetSize(item);
-			focus.attach(ILCloneFirst((ITEMIDLIST*)(((BYTE*)m_item.ptr) + size - 2)));
+			focus.attach(ILCloneFirst((ITEMIDLIST*)(((BYTE*)m_item) + size - 2)));
 		}
 	}
 
@@ -282,9 +331,18 @@ HRESULT XpExplorerBrowser::GoAbsolute(const ITEMIDLIST* item) throw()
 		return hr;
 
 	// 作成に成功したのでメンバを更新
-	m_item.attach(ILClone(item));
 	m_view = view;
 	m_defview = hwndDefView;
+	if (diff == 0)
+	{
+		m_history.push(item);
+		ASSERT(ILEquals(item, m_item));	/* check equivalence */
+	}
+	else
+	{
+		m_history.go(diff);
+		ASSERT(item == m_item);	/* check identity */
+	}
 
 	// コールバック。
 	InvokeViewCreated(m_view);
@@ -301,7 +359,7 @@ HRESULT XpExplorerBrowser::GoAbsolute(const ITEMIDLIST* item) throw()
 
 	InvokeNavigationComplete(item);
 
-	return hr;
+	return S_OK;
 }
 
 HRESULT XpExplorerBrowser::GoRelative(const ITEMIDLIST* relative) throw()
@@ -309,7 +367,7 @@ HRESULT XpExplorerBrowser::GoRelative(const ITEMIDLIST* relative) throw()
 	if (!relative)
 		return E_INVALIDARG;
 	if (const ITEMIDLIST* item = m_item)
-		return GoAbsolute(ILCombine(item, relative));
+		return GoAbsolute(ILCombine(item, relative), 0);
 	else
 		return E_UNEXPECTED;
 }
@@ -319,17 +377,21 @@ HRESULT XpExplorerBrowser::GoUp() throw()
 	ILPtr parent = ILCloneParent(m_item);
 	if (!parent)
 		return S_FALSE;
-	return GoAbsolute(parent);
+	return GoAbsolute(parent, 0);
 }
 
 HRESULT XpExplorerBrowser::GoBack() throw()
 {
-	return E_NOTIMPL;
+	if (const ITEMIDLIST* item = m_history[-1])
+		return GoAbsolute(item, -1);
+	return S_FALSE;
 }
 
 HRESULT XpExplorerBrowser::GoForward() throw()
 {
-	return E_NOTIMPL;
+	if (const ITEMIDLIST* item = m_history[+1])
+		return GoAbsolute(item, +1);
+	return S_FALSE;
 }
 
 //==========================================================================================================================
