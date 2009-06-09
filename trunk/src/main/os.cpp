@@ -189,7 +189,7 @@ static ref<IShellItem> os_path(PCWSTR path)
 	HRESULT hr;
 	ref<IShellItem> item;
 	if FAILED(hr = PathCreate(&item, path))
-		throw sq::Error(L"os.path(\"%s\") failed (0x%08X)", path, hr);
+		throw sq::Error(hr, L"os.path(\"%s\") failed", path);
 	return item;
 }
 
@@ -214,7 +214,8 @@ static void os_settings()
 	// プロトタイプがいまいちよく分からないので、ShellExecute経由で呼ぶ
 	ShellExecute(GetWindow(), null, L"rundll32.exe", L"shell32.dll,Options_RunDLL 0", null, SW_SHOW);
 
-	// XPだと、このアプリケーションよりも背面に表示してしまうので……
+	// XPだと、このアプリケーションよりも背面に表示してしまうので、前面化する。
+	// TODO: 多国語対応のため、ダイアログ名を Windows リソースから取得すべき。
 	if (WINDOWS_VERSION < WINDOWS_VISTA)
 	{
 		HWND hFolderOptions = null;
