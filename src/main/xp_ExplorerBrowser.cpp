@@ -34,7 +34,7 @@ namespace
 		const ITEMIDLIST* operator [] (ssize_t diff) const throw()
 		{
 			ssize_t newpos = m_pos + diff;
-			if (newpos < 0 || newpos >= m_items.size())
+			if (newpos < 0 || newpos >= (ssize_t) m_items.size())
 				return null;
 			return m_items[newpos];
 		}

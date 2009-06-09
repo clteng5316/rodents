@@ -413,7 +413,7 @@ void sq::get(HSQUIRRELVM v, SQInteger idx, object** value)
 
 void sq::get(HSQUIRRELVM v, SQInteger idx, REFINTF value)
 {
-	HRESULT			hr;
+	HRESULT			hr = S_OK;
 	SQUserPointer	self;
 	SQUserPointer	tag;
 	if (SQ_FAILED(sq_getuserdata(v, idx, &self, &tag)) ||
