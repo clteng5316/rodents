@@ -24,7 +24,7 @@ private:
 public:
 	ref<IShellItem>	get_selection() const;
 	void	set_selection(IShellItem* value);
-	void	append(IShellItem* item, bool includeFiles);
+	void	append(IShellItem* item);
 	void	collapse(IShellItem* value);
 	void	only(IShellItem* value);
 	void	toggle(IShellItem* value);

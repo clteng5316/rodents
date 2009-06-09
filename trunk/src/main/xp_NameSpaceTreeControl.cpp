@@ -4,6 +4,8 @@
 #include "hwnd.hpp"
 #include "unknown.hpp"
 #include "win32_commctrl.hpp"
+#include "resource.h"
+#include "string.hpp"
 
 //==========================================================================================================================
 
@@ -16,10 +18,13 @@ namespace
 	private:
 		ref<IServiceProvider>				m_site;
 		ref<INameSpaceTreeControlEvents>	m_handler;
+		SHCONTF		m_enumFlags;
 
 	private:
 		LRESULT onMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+		bool onNotify(NMHDR* nm, LRESULT& lResult);
 		static LRESULT CALLBACK onMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR id, DWORD_PTR data);
+		static LRESULT CALLBACK onParentMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR id, DWORD_PTR data);
 
 	public: // INameSpaceTreeControl
         IFACEMETHODIMP Initialize(HWND hwndParent, RECT* rc, NSTCSTYLE nsctsFlags);
@@ -59,6 +64,22 @@ LRESULT CALLBACK XpNameSpaceTreeControl::onMessage(HWND hwnd, UINT msg, WPARAM w
 	return ((XpNameSpaceTreeControl*)data)->onMessage(msg, wParam, lParam);
 }
 
+LRESULT CALLBACK XpNameSpaceTreeControl::onParentMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR id, DWORD_PTR data)
+{
+	if (msg == WM_NOTIFY)
+	{
+		NMHDR* nm = (NMHDR*)lParam;
+		XpNameSpaceTreeControl* self = (XpNameSpaceTreeControl*)data;
+		if (nm->hwndFrom == self->m_hwnd)
+		{
+			LRESULT lResult = 0;
+			if (self->onNotify(nm, lResult))
+				return lResult;
+		}
+	}
+	return ::DefSubclassProc(hwnd, msg, wParam, lParam);
+}
+
 LRESULT XpNameSpaceTreeControl::onMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
@@ -75,18 +96,84 @@ LRESULT XpNameSpaceTreeControl::onMessage(UINT msg, WPARAM wParam, LPARAM lParam
 	return ::DefSubclassProc(m_hwnd, msg, wParam, lParam);
 }
 
+bool XpNameSpaceTreeControl::onNotify(NMHDR* nm, LRESULT& lResult)
+{
+	switch (nm->code)
+	{
+	case TVN_GETDISPINFO:
+	{
+		NMTVDISPINFO* disp = (NMTVDISPINFO*) nm;
+		TVITEM& item = disp->item;
+		IShellItem* path = (IShellItem*) item.lParam;
+		if (item.mask & TVIF_TEXT)
+		{
+			CoStr name;
+			if SUCCEEDED(path->GetDisplayName(SIGDN_PARENTRELATIVE, &name))
+				wcscpy_s(item.pszText, item.cchTextMax, name);
+			else
+				wcscpy_s(item.pszText, item.cchTextMax, _S(STR_DESKTOP));
+		}
+		if (item.mask & (TVIF_SELECTEDIMAGE | TVIF_IMAGE))
+		{
+			item.iImage = ILIconIndex(ILCreate(path));
+		}
+		if (item.mask & TVIF_CHILDREN)
+		{
+			item.cChildren = 0;
+			ref<IEnumShellItems> e;
+			if SUCCEEDED(PathChildren(path, &e))
+			{
+				ref<IShellItem> child;
+				while (child = null, e->Next(1, &child, NULL) == S_OK)
+				{
+					SFGAOF attr = 0;
+					if SUCCEEDED(child->GetAttributes(SFGAO_FOLDER | SFGAO_HIDDEN, &attr))
+					{
+						if ((m_enumFlags & SHCONTF_INCLUDEHIDDEN) == 0 && (attr & SFGAO_HIDDEN))
+							continue;
+						if (attr & SFGAO_FOLDER)
+						{
+							if ((m_enumFlags & SHCONTF_FOLDERS) == 0)
+								continue;
+						}
+						else
+						{
+							if ((m_enumFlags & SHCONTF_NONFOLDERS) == 0)
+								continue;
+						}
+
+						if (InsertItem(item.hItem, child))
+						{
+							item.cChildren = 1;
+							child->AddRef();
+						}
+					}
+				}
+			}
+		}
+		item.mask |= TVIF_DI_SETITEM;
+		return true;
+	}
+	default:
+		return false;
+	}
+}
+
 //==========================================================================================================================
 // INameSpaceTreeControl
 
 IFACEMETHODIMP XpNameSpaceTreeControl::Initialize(HWND hwndParent, RECT* rc, NSTCSTYLE nsctsFlags)
 {
+	if (!::IsWindow(hwndParent))
+		return E_INVALIDARG;
+
 	InitCommonControls(ICC_TREEVIEW_CLASSES);
 
 	m_hwnd = CreateWindowEx(
 		WS_EX_CLIENTEDGE,
 		WC_TREEVIEW,
 		null,
-		WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+		WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS,
 		RECT_XYWH(*rc),
 		hwndParent,
 		null,
@@ -96,6 +183,9 @@ IFACEMETHODIMP XpNameSpaceTreeControl::Initialize(HWND hwndParent, RECT* rc, NST
 	ASSERT(m_hwnd);
 	if (::SetWindowSubclass(m_hwnd, &XpNameSpaceTreeControl::onMessage, 0, (DWORD_PTR) this))
 		AddRef();
+	::SetWindowSubclass(hwndParent, &XpNameSpaceTreeControl::onParentMessage, 0, (DWORD_PTR) this);
+
+	SetImageList(SHGetImageList(16), TVSIL_NORMAL);
 
 	return S_OK;
 }
@@ -123,16 +213,21 @@ IFACEMETHODIMP XpNameSpaceTreeControl::TreeUnadvise(DWORD dwCookie)
 
 IFACEMETHODIMP XpNameSpaceTreeControl::AppendRoot(IShellItem* item, SHCONTF grfEnumFlags, NSTCROOTSTYLE grfRootStyle, IShellItemFilter *filter)
 {
-	if (HTREEITEM handle = InsertItem(TVI_ROOT, item, LPSTR_TEXTCALLBACK, I_IMAGECALLBACK))
-	{
-		item->AddRef();
-		// Store(item -> { grfEnumFlags, filter } )
-//grfRootStyle
-//NSTCRS_VISIBLE | NSTCRS_EXPANDED
-		return S_OK;
-	}
-	else
+	HTREEITEM handle = InsertItem(TVI_ROOT, item);
+
+	if (!handle)
 		return E_FAIL;
+
+	item->AddRef();
+
+	// TODO: have separate enum flags for each root
+	m_enumFlags = grfEnumFlags;
+
+	if (grfRootStyle & NSTCRS_EXPANDED)
+		Expand(handle, TVE_EXPAND);
+	if (grfRootStyle & NSTCRS_VISIBLE)
+		EnsureVisible(handle);
+	return S_OK;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::InsertRoot(int iIndex, IShellItem* item, SHCONTF grfEnumFlags, NSTCROOTSTYLE grfRootStyle, IShellItemFilter *filter)

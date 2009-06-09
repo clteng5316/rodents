@@ -278,9 +278,10 @@ HRESULT PathCreate(IShellItem** pp, PCWSTR path);
 HRESULT	PathCreate(IShellItem** pp, IShellFolder* folder, const ITEMIDLIST* parent, const ITEMIDLIST* leaf);
 HRESULT	PathCreate(IShellItem** pp, const ITEMIDLIST* item);
 HRESULT	PathCreate(IShellItem** pp, IShellItem* parent, PCWSTR name);
-HRESULT	PathGetBrowsable(IShellItem* item) throw();
+HRESULT	PathBrowsable(IShellItem* item) throw();
 HBITMAP	PathGetThumbnail(IShellItem* item) throw();
 HRESULT PathStat(IShellItem* item, WIN32_FIND_DATA* stat) throw();
+HRESULT	PathChildren(IShellItem* item, IEnumShellItems** e) throw();
 
 //==========================================================================================================================
 // IShellItemArray

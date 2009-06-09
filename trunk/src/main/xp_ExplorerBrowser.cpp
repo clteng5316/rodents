@@ -40,11 +40,12 @@ namespace
 		}
 		void go(ssize_t diff) throw()
 		{
-			m_pos = math::clamp<ssize_t>(m_pos + diff, 0, m_items.size());
+			if (!m_items.empty())
+				m_pos = math::clamp<ssize_t>(m_pos + diff, 0, m_items.size() - 1);
 		}
 		void pop_back(size_t pos) throw()
 		{
-			for (size_t i = pos + 1; i < m_items.size(); ++i)
+			for (size_t i = pos; i < m_items.size(); ++i)
 				ILFree(m_items[i]);
 			m_items.resize(pos);
 		}

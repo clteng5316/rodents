@@ -106,10 +106,9 @@ void TreeView::toggle(IShellItem* value)
 	}
 }
 
-void TreeView::append(IShellItem* item, bool includeFiles)
+void TreeView::append(IShellItem* item)
 {
-	m_control->AppendRoot(item,
-		SHCONTF_FOLDERS | (includeFiles ? SHCONTF_NONFOLDERS : 0),
+	m_control->AppendRoot(item, SHCONTF_FOLDERS,
 		NSTCRS_VISIBLE | NSTCRS_EXPANDED, null);
 }
 
