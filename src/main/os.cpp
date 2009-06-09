@@ -420,7 +420,7 @@ ref<IShellItem> Path::get_linked()
 
 bool Path::browsable(bool nonDefault)
 {
-	switch (PathGetBrowsable(this))
+	switch (PathBrowsable(this))
 	{
 	case S_OK:
 		return true;

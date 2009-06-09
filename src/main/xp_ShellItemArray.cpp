@@ -26,6 +26,20 @@ namespace
         IFACEMETHODIMP GetCount(DWORD* outCount);
         IFACEMETHODIMP EnumItems(IEnumShellItems** pp);
 	};
+
+	class XpEnumShellItems : public Unknown< implements<IEnumShellItems> >
+	{
+	private:
+		ref<IShellItemArray>	m_array;
+		DWORD					m_index;
+
+	public:
+		XpEnumShellItems(IShellItemArray* array);
+        IFACEMETHODIMP Next(ULONG num, IShellItem** items, ULONG* fetched);
+        IFACEMETHODIMP Skip(ULONG num);
+        IFACEMETHODIMP Reset();
+        IFACEMETHODIMP Clone(IEnumShellItems** pp);
+	};
 }
 
 XpShellItemArray::XpShellItemArray(const CIDA* cida, IShellFolder* folder_)
@@ -88,7 +102,10 @@ IFACEMETHODIMP XpShellItemArray::GetCount(DWORD* outCount)
 
 IFACEMETHODIMP XpShellItemArray::EnumItems(IEnumShellItems** pp)
 {
-	return E_NOTIMPL;
+	if (!pp)
+		return E_POINTER;
+	*pp = new XpEnumShellItems(this);
+	return S_OK;
 }
 
 //==========================================================================================================================
@@ -105,5 +122,51 @@ HRESULT XpCreateShellItemArray(IShellItemArray** pp, const ITEMIDLIST* parent, I
 {
 	ASSERT(pp);
 	*pp = new XpShellItemArray(parent, folder, count, children);
+	return S_OK;
+}
+
+//==========================================================================================================================
+
+XpEnumShellItems::XpEnumShellItems(IShellItemArray* array)
+: m_array(array), m_index(0)
+{
+	ASSERT(m_array);
+}
+
+IFACEMETHODIMP XpEnumShellItems::Next(ULONG num, IShellItem** items, ULONG* fetched)
+{
+	HRESULT		hr;
+	ULONG		done;
+
+	if (num < 1)
+		return E_INVALIDARG;
+	if (!fetched)
+		fetched = &done;
+
+	for (*fetched = 0; *fetched < num; ++*fetched, ++m_index)
+	{
+		if FAILED(hr = m_array->GetItemAt(m_index, &items[*fetched]))
+			return *fetched > 0 ? S_FALSE : hr;
+	}
+	return S_OK;
+}
+
+IFACEMETHODIMP XpEnumShellItems::Skip(ULONG num)
+{
+	m_index += num;
+	return S_OK;
+}
+
+IFACEMETHODIMP XpEnumShellItems::Reset()
+{
+	m_index = 0;
+	return S_OK;
+}
+
+IFACEMETHODIMP XpEnumShellItems::Clone(IEnumShellItems** pp)
+{
+	if (!pp)
+		return E_POINTER;
+	*pp = new XpEnumShellItems(m_array);
 	return S_OK;
 }

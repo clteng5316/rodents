@@ -140,25 +140,27 @@ public:
 	TreeViewT& operator = (HWND hwnd)	{ m_hwnd = hwnd; return *this; }
 
 public:
-	void*		GetItemData(HTREEITEM item) const throw()												{ return TreeView_GetItemData(m_hwnd, item); }
-	BOOL		GetItemRect(HTREEITEM item, RECT* rc, BOOL textonly = TRUE) const throw()				{ return TreeView_GetItemRect(m_hwnd, item, rc, textonly); }
-	HTREEITEM	GetNextItem(HTREEITEM item, UINT flags) const throw()									{ return TreeView_GetNextItem(m_hwnd, item, flags); }
-	HTREEITEM	GetChildItem(HTREEITEM item) const throw()												{ return TreeView_GetChild(m_hwnd, item); }
-	void		SetItem(const TVITEM& item) throw()														{ VERIFY( TreeView_SetItem(m_hwnd, &item) ); }
-	HTREEITEM	GetSelection() const throw()															{ return TreeView_GetSelection(m_hwnd); }
-	HTREEITEM	GetDropHilight() const throw()															{ return TreeView_GetDropHilight(m_hwnd); }
-	HTREEITEM	GetChild(HTREEITEM item) const throw()													{ return TreeView_GetChild(m_hwnd, item); }
-	HTREEITEM	HitTest(TVHITTESTINFO* hit) const throw()												{ return TreeView_HitTest(m_hwnd, hit); }
-	HTREEITEM	InsertItem(HTREEITEM parent, const TVITEM& item) throw()								{ return TreeView_Insert(m_hwnd, parent, item); }
-	HTREEITEM	InsertItem(HTREEITEM parent, void* data, PCWSTR name, int icon = I_IMAGENONE) throw()	{ return TreeView_Insert(m_hwnd, parent, data, name, icon); }
-	void		DeleteAllItems() throw()																{ TreeView_DeleteAllItems(m_hwnd); }
-	void		Expand(HTREEITEM item, UINT tve) throw()												{ VERIFY( TreeView_Expand(m_hwnd, item, tve) ); }
-	void		SelectItem(HTREEITEM item) throw()														{ VERIFY( TreeView_SelectItem(m_hwnd, item) ); }
-	HTREEITEM	SelectItem(int x, int y) throw()														{ return TreeView_SelectItemByPos(m_hwnd, x, y); }
-	HWND		GetEdit() const throw()																	{ return TreeView_GetEditControl(m_hwnd); }
-	HIMAGELIST	SetImageList(HIMAGELIST image, INT what = TVSIL_NORMAL) throw()							{ return TreeView_SetImageList(m_hwnd, image, what); }
-	HWND		EditLabel(HTREEITEM item) throw()														{ return TreeView_EditLabel(m_hwnd, item); }
-	void		EndEditLabelNow(bool cancel) throw()													{ TreeView_EndEditLabelNow(m_hwnd, cancel); }
+	void*		GetItemData(HTREEITEM item) const throw()									{ return TreeView_GetItemData(m_hwnd, item); }
+	BOOL		GetItemRect(HTREEITEM item, RECT* rc, BOOL textonly = TRUE) const throw()	{ return TreeView_GetItemRect(m_hwnd, item, rc, textonly); }
+	HTREEITEM	GetNextItem(HTREEITEM item, UINT flags) const throw()						{ return TreeView_GetNextItem(m_hwnd, item, flags); }
+	HTREEITEM	GetChildItem(HTREEITEM item) const throw()									{ return TreeView_GetChild(m_hwnd, item); }
+	void		SetItem(const TVITEM& item) throw()											{ VERIFY( TreeView_SetItem(m_hwnd, &item) ); }
+	HTREEITEM	GetSelection() const throw()												{ return TreeView_GetSelection(m_hwnd); }
+	HTREEITEM	GetDropHilight() const throw()												{ return TreeView_GetDropHilight(m_hwnd); }
+	HTREEITEM	GetChild(HTREEITEM item) const throw()										{ return TreeView_GetChild(m_hwnd, item); }
+	HTREEITEM	HitTest(TVHITTESTINFO* hit) const throw()									{ return TreeView_HitTest(m_hwnd, hit); }
+	HTREEITEM	InsertItem(HTREEITEM parent, const TVITEM& item) throw()					{ return TreeView_Insert(m_hwnd, parent, item); }
+	HTREEITEM	InsertItem(HTREEITEM parent, void* data, PCWSTR name = LPSTR_TEXTCALLBACK,
+						   int icon = I_CHILDRENCALLBACK) throw()							{ return TreeView_Insert(m_hwnd, parent, data, name, icon); }
+	void		DeleteAllItems() throw()													{ TreeView_DeleteAllItems(m_hwnd); }
+	void		Expand(HTREEITEM item, UINT tve) throw()									{ TreeView_Expand(m_hwnd, item, tve); }
+	void		EnsureVisible(HTREEITEM item) throw()										{ TreeView_EnsureVisible(m_hwnd, item); }
+	void		SelectItem(HTREEITEM item) throw()											{ VERIFY( TreeView_SelectItem(m_hwnd, item) ); }
+	HTREEITEM	SelectItem(int x, int y) throw()											{ return TreeView_SelectItemByPos(m_hwnd, x, y); }
+	HWND		GetEdit() const throw()														{ return TreeView_GetEditControl(m_hwnd); }
+	HIMAGELIST	SetImageList(HIMAGELIST image, INT what = TVSIL_NORMAL) throw()				{ return TreeView_SetImageList(m_hwnd, image, what); }
+	HWND		EditLabel(HTREEITEM item) throw()											{ return TreeView_EditLabel(m_hwnd, item); }
+	void		EndEditLabelNow(bool cancel) throw()										{ TreeView_EndEditLabelNow(m_hwnd, cancel); }
 };
 
 typedef TreeViewT<Hwnd>	TreeViewH;

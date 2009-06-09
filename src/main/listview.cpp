@@ -1098,7 +1098,7 @@ IFACEMETHODIMP ListView::OnDefaultCommand(IShellView* view)
 	// S_FALSE ‚ğ•Ô‚·‚¾‚¯‚Å‚ÍˆÚ“®‚µ‚Ä‚­‚ê‚È‚¢‚½‚ß©‘O‚ÅˆÚ“®‚·‚éB
 	ref<IShellItem> item;
 	if (SUCCEEDED(items->GetItemAt(0, &item)) &&
-		PathGetBrowsable(item) == S_OK &&
+		PathBrowsable(item) == S_OK &&
 		SUCCEEDED(BrowseObject(ILCreate(item), SBSP_SAMEBROWSER | SBSP_ABSOLUTE)))
 			return S_OK;
 	return S_FALSE;

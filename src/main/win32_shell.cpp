@@ -169,7 +169,36 @@ HRESULT PathStat(IShellItem* item, WIN32_FIND_DATA* stat) throw()
 	return SHGetDataFromIDList(folder, leaf, SHGDFIL_FINDDATA, stat, sizeof(WIN32_FIND_DATA));
 }
 
-HRESULT PathGetBrowsable(IShellItem* item)
+HRESULT	PathChildren(IShellItem* item, IEnumShellItems** e) throw()
+{
+	if (!item || !e)
+		return E_POINTER;
+
+	if SUCCEEDED(item->BindToHandler(null, BHID_EnumItems, IID_PPV_ARGS(e)))
+		return S_OK;
+
+	// BHID_StorageEnum では、デスクトップはディレクトリとして列挙されてしまう。
+	// マイコンピュータなどの仮想フォルダが除外されてしまうので、使わない。
+	if (ILPtr pidl = ILCreate(item))
+	{
+		if (!ILIsRoot(pidl) &&
+			SUCCEEDED(item->BindToHandler(null, BHID_StorageEnum, IID_PPV_ARGS(e))))
+			return S_OK;
+
+		ref<IShellItemArray>	items;
+		ref<IShellFolder>		folder;
+		ref<IEnumIDList>		enumerator;
+		if (SUCCEEDED(ILFolder(&folder, pidl)) &&
+			SUCCEEDED(folder->EnumObjects(GetWindow(), SHCONTF_FOLDERS | SHCONTF_NONFOLDERS, &enumerator)) &&
+			SUCCEEDED(PathsCreate(&items, pidl, folder, enumerator)) &&
+			SUCCEEDED(items->EnumItems(e)))
+			return S_OK;
+	}
+
+	return E_FAIL;
+}
+
+HRESULT PathBrowsable(IShellItem* item)
 {
 	if (!item)
 		return E_FAIL;
