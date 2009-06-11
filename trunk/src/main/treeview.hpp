@@ -33,7 +33,7 @@ protected:
 	LRESULT onMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 	void	onCreate(WNDCLASSEX& wc, CREATESTRUCT& cs);
 //	bool	onPress(const MSG& msg);
-//	bool	onGesture(const MSG& msg);
+	bool	onGesture(const MSG& msg);
 	HWND	onFocus() throw();
 
 public:	// IServiceProvider
