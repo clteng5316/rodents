@@ -180,6 +180,17 @@ LRESULT TreeView::onMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 	return __super::onMessage(msg, wParam, lParam);
 }
 
+bool TreeView::onGesture(const MSG& msg)
+{
+	if (m_hwnd != msg.hwnd)
+	{
+		TVHITTESTINFO hit = { GET_XY_LPARAM(msg.lParam) };
+		if (m_treeview.HitTest(&hit))
+			return false;
+	}
+	return __super::onGesture(msg);
+}
+
 //==========================================================================================================================
 // IServiceProvider
 

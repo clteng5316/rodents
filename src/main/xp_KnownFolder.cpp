@@ -291,6 +291,7 @@ IFACEMETHODIMP XpKnownFolder::GetId(KNOWNFOLDERID *pkfid)
 IFACEMETHODIMP XpKnownFolder::GetCategory(KF_CATEGORY *pCategory)
 {
 //	*pCategory = m_desc.category;
+	ASSERT(0);
 	return E_NOTIMPL;
 }
 
@@ -311,14 +312,22 @@ IFACEMETHODIMP XpKnownFolder::GetPath(DWORD dwFlags, LPWSTR *ppszPath)
 		return E_POINTER;
 
 	WCHAR	path[MAX_PATH];
-	if (!SHGetSpecialFolderPath(GetWindow(), path, m_desc.csidl, false))
+	BOOL	ok;
+
+	ok = (m_desc.csidl >= 0 && SHGetSpecialFolderPath(GetWindow(), path, m_desc.csidl, false));
+
+	if (!ok && m_desc.path && m_desc.path[0] != L':')
+		PathCombine(path, PATH_ROOT, m_desc.path);
+	else
 		return E_FAIL;
+
 	*ppszPath = str::dup<CoTaskMem>(path).detach();
 	return S_OK;
 }
 
 IFACEMETHODIMP XpKnownFolder::SetPath(DWORD dwFlags, PCWSTR pszPath)
 {
+	ASSERT(0);
 	return E_NOTIMPL;
 }
 
@@ -328,7 +337,7 @@ IFACEMETHODIMP XpKnownFolder::GetIDList(DWORD dwFlags, PIDLIST_ABSOLUTE *ppidl)
 		return ::SHGetSpecialFolderLocation(GetWindow(), m_desc.csidl, ppidl);
 
 	if (!m_desc.path)
-		return E_UNEXPECTED;
+		return E_FAIL;
 
 	if (m_desc.path[0] == L':')
 		return ::SHILCreateFromPath(m_desc.path, ppidl, null);
@@ -340,16 +349,19 @@ IFACEMETHODIMP XpKnownFolder::GetIDList(DWORD dwFlags, PIDLIST_ABSOLUTE *ppidl)
 
 IFACEMETHODIMP XpKnownFolder::GetFolderType(FOLDERTYPEID *pftid)
 {
+	ASSERT(0);
 	return E_NOTIMPL;
 }
 
 IFACEMETHODIMP XpKnownFolder::GetRedirectionCapabilities(KF_REDIRECTION_CAPABILITIES *pCapabilities)
 {
+	ASSERT(0);
 	return E_NOTIMPL;
 }
 
 IFACEMETHODIMP XpKnownFolder::GetFolderDefinition(KNOWNFOLDER_DEFINITION *pKFD)
 {
+	ASSERT(0);
 	return E_NOTIMPL;
 }
 

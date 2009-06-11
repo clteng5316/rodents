@@ -22,9 +22,11 @@ namespace
 
 	private:
 		LRESULT onMessage(UINT msg, WPARAM wParam, LPARAM lParam);
-		bool onNotify(NMHDR* nm, LRESULT& lResult);
+		bool	onNotify(NMHDR* nm, LRESULT& lResult);
+		void	onClick(NSTCECLICKTYPE nstcect, int x, int y);
 		static LRESULT CALLBACK onMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR id, DWORD_PTR data);
 		static LRESULT CALLBACK onParentMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR id, DWORD_PTR data);
+		using TreeViewH::HitTest;
 
 	public: // INameSpaceTreeControl
         IFACEMETHODIMP Initialize(HWND hwndParent, RECT* rc, NSTCSTYLE nsctsFlags);
@@ -84,6 +86,9 @@ LRESULT XpNameSpaceTreeControl::onMessage(UINT msg, WPARAM wParam, LPARAM lParam
 {
 	switch (msg)
 	{
+	case WM_MBUTTONDOWN:
+		onClick(NSTCECT_MBUTTON, GET_XY_LPARAM(lParam));
+		return 0;
 	case WM_NCDESTROY:
 	{
 		LRESULT lResult = ::DefSubclassProc(m_hwnd, msg, wParam, lParam);
@@ -115,7 +120,7 @@ bool XpNameSpaceTreeControl::onNotify(NMHDR* nm, LRESULT& lResult)
 		}
 		if (item.mask & (TVIF_SELECTEDIMAGE | TVIF_IMAGE))
 		{
-			item.iImage = ILIconIndex(ILCreate(path));
+			item.iImage = item.iSelectedImage = ILIconIndex(ILCreate(path));
 		}
 		if (item.mask & TVIF_CHILDREN)
 		{
@@ -159,6 +164,25 @@ bool XpNameSpaceTreeControl::onNotify(NMHDR* nm, LRESULT& lResult)
 	}
 }
 
+void XpNameSpaceTreeControl::onClick(NSTCECLICKTYPE nstcect, int x, int y)
+{
+	if (!m_handler)
+		return;
+
+	TVHITTESTINFO hit = { x, y };
+	if (HTREEITEM handle = HitTest(&hit))
+	{
+		if (handle != GetSelection())
+		{
+			if (nstcect == NSTCECT_MBUTTON)
+				SelectItem(handle);
+			IShellItem* item = (IShellItem*) GetItemData(handle);
+			// TVHT and NSTCEHT are compatible.
+			m_handler->OnItemClick(item, hit.flags, nstcect);
+		}
+	}
+}
+
 //==========================================================================================================================
 // INameSpaceTreeControl
 
@@ -173,7 +197,7 @@ IFACEMETHODIMP XpNameSpaceTreeControl::Initialize(HWND hwndParent, RECT* rc, NST
 		WS_EX_CLIENTEDGE,
 		WC_TREEVIEW,
 		null,
-		WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS,
+		WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_SHOWSELALWAYS,
 		RECT_XYWH(*rc),
 		hwndParent,
 		null,
