@@ -392,6 +392,7 @@ inline UINT64 FileSizeOf(const WIN32_FIND_DATA& info) throw()
 //==========================================================================================================================
 // XP
 
+extern HRESULT XpCreateShellItemArray(IShellItemArray** pp, size_t n, IShellItem* items[]);
 extern HRESULT XpCreateShellItemArray(IShellItemArray** pp, const CIDA* cida, IShellFolder* folder);
 extern HRESULT XpCreateShellItemArray(IShellItemArray** pp, const ITEMIDLIST* parent, IShellFolder* folder, size_t count, ITEMIDLIST** children);
 extern HRESULT XpExplorerBrowserCreate(REFINTF pp);
