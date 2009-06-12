@@ -24,9 +24,22 @@ namespace
 		LRESULT onMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 		bool	onNotify(NMHDR* nm, LRESULT& lResult);
 		void	onClick(NSTCECLICKTYPE nstcect, int x, int y);
+		void	onInsertItem(HTREEITEM hItem, IShellItem* value);
+		void	onDeleteItem(HTREEITEM hItem, IShellItem* value);
+		void	onGetDispInfo(NMTVDISPINFO& disp);
 		static LRESULT CALLBACK onMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR id, DWORD_PTR data);
 		static LRESULT CALLBACK onParentMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR id, DWORD_PTR data);
 		using TreeViewH::HitTest;
+		using TreeViewH::GetItemRect;
+		using TreeViewH::GetNextItem;
+		using TreeViewH::GetItemState;
+		using TreeViewH::SetItemState;
+
+	public:
+		HTREEITEM	InsertItem(HTREEITEM parent, IShellItem* value);
+		HTREEITEM	FindItem(IShellItem* value, bool rootOnly = false);
+		IShellItem*	GetItemData(HTREEITEM hItem);
+		HRESULT		GetItemData(HTREEITEM hItem, IShellItem** pp);
 
 	public: // INameSpaceTreeControl
         IFACEMETHODIMP Initialize(HWND hwndParent, RECT* rc, NSTCSTYLE nsctsFlags);
@@ -44,7 +57,7 @@ namespace
         IFACEMETHODIMP SetItemCustomState(IShellItem* item, int iStateNumber);
         IFACEMETHODIMP EnsureItemVisible(IShellItem* item);
         IFACEMETHODIMP SetTheme(PCWSTR pszTheme);
-        IFACEMETHODIMP GetNextItem(IShellItem* item, NSTCGNI nstcgi, IShellItem **ppsiNext);
+        IFACEMETHODIMP GetNextItem(IShellItem* item, NSTCGNI nstcgi, IShellItem **pp);
         IFACEMETHODIMP HitTest(POINT* pt, IShellItem** pp);
         IFACEMETHODIMP GetItemRect(IShellItem* item, RECT* rc);
         IFACEMETHODIMP CollapseAll();
@@ -105,60 +118,25 @@ bool XpNameSpaceTreeControl::onNotify(NMHDR* nm, LRESULT& lResult)
 {
 	switch (nm->code)
 	{
-	case TVN_GETDISPINFO:
+	case TVN_DELETEITEM:
 	{
-		NMTVDISPINFO* disp = (NMTVDISPINFO*) nm;
-		TVITEM& item = disp->item;
-		IShellItem* path = (IShellItem*) item.lParam;
-		if (item.mask & TVIF_TEXT)
-		{
-			CoStr name;
-			if SUCCEEDED(path->GetDisplayName(SIGDN_PARENTRELATIVE, &name))
-				wcscpy_s(item.pszText, item.cchTextMax, name);
-			else
-				wcscpy_s(item.pszText, item.cchTextMax, _S(STR_DESKTOP));
-		}
-		if (item.mask & (TVIF_SELECTEDIMAGE | TVIF_IMAGE))
-		{
-			item.iImage = item.iSelectedImage = ILIconIndex(ILCreate(path));
-		}
-		if (item.mask & TVIF_CHILDREN)
-		{
-			item.cChildren = 0;
-			ref<IEnumShellItems> e;
-			if SUCCEEDED(PathChildren(path, &e))
-			{
-				ref<IShellItem> child;
-				while (child = null, e->Next(1, &child, NULL) == S_OK)
-				{
-					SFGAOF attr = 0;
-					if SUCCEEDED(child->GetAttributes(SFGAO_FOLDER | SFGAO_HIDDEN, &attr))
-					{
-						if ((m_enumFlags & SHCONTF_INCLUDEHIDDEN) == 0 && (attr & SFGAO_HIDDEN))
-							continue;
-						if (attr & SFGAO_FOLDER)
-						{
-							if ((m_enumFlags & SHCONTF_FOLDERS) == 0)
-								continue;
-						}
-						else
-						{
-							if ((m_enumFlags & SHCONTF_NONFOLDERS) == 0)
-								continue;
-						}
-
-						if (InsertItem(item.hItem, child))
-						{
-							item.cChildren = 1;
-							child->AddRef();
-						}
-					}
-				}
-			}
-		}
-		item.mask |= TVIF_DI_SETITEM;
+		NMTREEVIEW* nmtv = (NMTREEVIEW*) nm;
+		onDeleteItem(nmtv->itemOld.hItem, (IShellItem*) nmtv->itemOld.lParam);
 		return true;
 	}
+//	case TVN_ITEMEXPANDING	, OnExpanding
+//	case TVN_ITEMEXPANDED	, OnExpanded
+//	case TVN_BEGINDRAG		, OnBeginDrag
+//	case TVN_BEGINRDRAG	, OnBeginDrag
+//	case TVN_KEYDOWN		, OnItemKeyDown
+//	case TVN_SELCHANGED	, OnSelChanged)
+	case TVN_GETDISPINFO:
+		onGetDispInfo(*(NMTVDISPINFO*) nm);
+		return true;
+	case NM_RETURN:
+		// デフォルト動作は「ビープを鳴らす」ので、キャンセルする。
+		lResult = 1;
+		return true;
 	default:
 		return false;
 	}
@@ -170,17 +148,110 @@ void XpNameSpaceTreeControl::onClick(NSTCECLICKTYPE nstcect, int x, int y)
 		return;
 
 	TVHITTESTINFO hit = { x, y };
-	if (HTREEITEM handle = HitTest(&hit))
+	if (HTREEITEM hItem = HitTest(&hit))
 	{
-		if (handle != GetSelection())
+		if (hItem != GetSelection())
 		{
 			if (nstcect == NSTCECT_MBUTTON)
-				SelectItem(handle);
-			IShellItem* item = (IShellItem*) GetItemData(handle);
+				SelectItem(hItem);
+			IShellItem* item = GetItemData(hItem);
 			// TVHT and NSTCEHT are compatible.
 			m_handler->OnItemClick(item, hit.flags, nstcect);
 		}
 	}
+}
+
+HTREEITEM XpNameSpaceTreeControl::InsertItem(HTREEITEM parent, IShellItem* value)
+{
+	HTREEITEM hItem = __super::InsertItem(parent, value);
+	if (hItem)
+		onInsertItem(hItem, value);
+	return hItem;
+}
+
+HTREEITEM XpNameSpaceTreeControl::FindItem(IShellItem* value, bool rootOnly)
+{
+	return NULL;
+}
+
+IShellItem* XpNameSpaceTreeControl::GetItemData(HTREEITEM hItem)
+{
+	return (IShellItem*) __super::GetItemData(hItem);
+}
+
+HRESULT XpNameSpaceTreeControl::GetItemData(HTREEITEM hItem, IShellItem** pp)
+{
+	if (!pp)
+		return E_POINTER;
+	*pp = (IShellItem*) GetItemData(hItem);
+	if (*pp)
+	{
+		(*pp)->AddRef();
+		return S_OK;
+	}
+	return E_FAIL;
+}
+
+void XpNameSpaceTreeControl::onInsertItem(HTREEITEM hItem, IShellItem* value)
+{
+	if (value)
+		value->AddRef();
+}
+
+void XpNameSpaceTreeControl::onDeleteItem(HTREEITEM hItem, IShellItem* value)
+{
+	if (value)
+		value->Release();
+}
+
+void XpNameSpaceTreeControl::onGetDispInfo(NMTVDISPINFO& disp)
+{
+	TVITEM& item = disp.item;
+	IShellItem* path = (IShellItem*) item.lParam;
+	if (item.mask & TVIF_TEXT)
+	{
+		CoStr name;
+		if SUCCEEDED(path->GetDisplayName(SIGDN_PARENTRELATIVE, &name))
+			wcscpy_s(item.pszText, item.cchTextMax, name);
+		else
+			wcscpy_s(item.pszText, item.cchTextMax, _S(STR_DESKTOP));
+	}
+	if (item.mask & (TVIF_SELECTEDIMAGE | TVIF_IMAGE))
+	{
+		item.iImage = item.iSelectedImage = ILIconIndex(ILCreate(path));
+	}
+	if (item.mask & TVIF_CHILDREN)
+	{
+		item.cChildren = 0;
+		ref<IEnumShellItems> e;
+		if SUCCEEDED(PathChildren(path, &e))
+		{
+			ref<IShellItem> child;
+			while (child = null, e->Next(1, &child, NULL) == S_OK)
+			{
+				SFGAOF attr = 0;
+				if SUCCEEDED(child->GetAttributes(SFGAO_FOLDER | SFGAO_HIDDEN, &attr))
+				{
+					if ((m_enumFlags & SHCONTF_INCLUDEHIDDEN) == 0 && (attr & SFGAO_HIDDEN))
+						continue;
+					if (attr & SFGAO_FOLDER)
+					{
+						if ((m_enumFlags & SHCONTF_FOLDERS) == 0)
+							continue;
+					}
+					else
+					{
+						if ((m_enumFlags & SHCONTF_NONFOLDERS) == 0)
+							continue;
+					}
+
+					if (InsertItem(item.hItem, child))
+						item.cChildren = 1;
+				}
+			}
+		}
+	}
+	item.mask |= TVIF_DI_SETITEM;
 }
 
 //==========================================================================================================================
@@ -237,56 +308,78 @@ IFACEMETHODIMP XpNameSpaceTreeControl::TreeUnadvise(DWORD dwCookie)
 
 IFACEMETHODIMP XpNameSpaceTreeControl::AppendRoot(IShellItem* item, SHCONTF grfEnumFlags, NSTCROOTSTYLE grfRootStyle, IShellItemFilter *filter)
 {
-	HTREEITEM handle = InsertItem(TVI_ROOT, item);
+	return InsertRoot(-1, item, grfEnumFlags, grfRootStyle, filter);
+}
 
-	if (!handle)
+IFACEMETHODIMP XpNameSpaceTreeControl::InsertRoot(int iIndex, IShellItem* item, SHCONTF grfEnumFlags, NSTCROOTSTYLE grfRootStyle, IShellItemFilter *filter)
+{
+	ASSERT(!filter);	// not supported
+	ASSERT(iIndex < 0);	// not supported
+
+	HTREEITEM hItem = InsertItem(TVI_ROOT, item);
+	if (!hItem)
 		return E_FAIL;
-
-	item->AddRef();
 
 	// TODO: have separate enum flags for each root
 	m_enumFlags = grfEnumFlags;
 
 	if (grfRootStyle & NSTCRS_EXPANDED)
-		Expand(handle, TVE_EXPAND);
+		Expand(hItem, TVE_EXPAND);
 	if (grfRootStyle & NSTCRS_VISIBLE)
-		EnsureVisible(handle);
+		EnsureVisible(hItem);
 	return S_OK;
-}
-
-IFACEMETHODIMP XpNameSpaceTreeControl::InsertRoot(int iIndex, IShellItem* item, SHCONTF grfEnumFlags, NSTCROOTSTYLE grfRootStyle, IShellItemFilter *filter)
-{
-	return E_NOTIMPL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::RemoveRoot(IShellItem* item)
 {
-	return E_NOTIMPL;
+	if (HTREEITEM hItem = FindItem(item, true))
+	{
+		DeleteItem(hItem);
+		return S_OK;
+	}
+	return E_FAIL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::RemoveAllRoots()
 {
-	return E_NOTIMPL;
+	DeleteAllItems();
+	return S_OK;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::GetRootItems(IShellItemArray** items)
 {
+//	GetNextItem(TVI_ROOT, TVGN_CHILD);
 	return E_NOTIMPL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::SetItemState(IShellItem* item, NSTCITEMSTATE nstcisMask, NSTCITEMSTATE nstcisFlags)
 {
-	return E_NOTIMPL;
+	// TODO: NSTCITEMSTATE は TVIS と互換性があるか?
+	if (HTREEITEM hItem = FindItem(item))
+	{
+		SetItemState(hItem, nstcisMask, nstcisFlags);
+		return S_OK;
+	}
+	return E_FAIL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::GetItemState(IShellItem* item, NSTCITEMSTATE nstcisMask, NSTCITEMSTATE *pnstcisFlags)
 {
-	return E_NOTIMPL;
+	// TODO: NSTCITEMSTATE は TVIS と互換性があるか?
+	if (HTREEITEM hItem = FindItem(item))
+	{
+		*pnstcisFlags = GetItemState(hItem, nstcisMask);
+		return S_OK;
+	}
+	return E_FAIL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::GetSelectedItems(IShellItemArray** items)
 {
-	return E_NOTIMPL;
+	if (HTREEITEM hItem = GetSelection())
+		if (IShellItem* item = GetItemData(hItem))
+			return XpCreateShellItemArray(items, 1, &item);
+	return E_FAIL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::GetItemCustomState(IShellItem* item, int *piStateNumber)
@@ -301,7 +394,12 @@ IFACEMETHODIMP XpNameSpaceTreeControl::SetItemCustomState(IShellItem* item, int 
 
 IFACEMETHODIMP XpNameSpaceTreeControl::EnsureItemVisible(IShellItem* item)
 {
-	return E_NOTIMPL;
+	if (HTREEITEM hItem = FindItem(item))
+	{
+		EnsureVisible(hItem);
+		return S_OK;
+	}
+	return E_FAIL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::SetTheme(PCWSTR pszTheme)
@@ -309,24 +407,35 @@ IFACEMETHODIMP XpNameSpaceTreeControl::SetTheme(PCWSTR pszTheme)
 	return E_NOTIMPL;
 }
 
-IFACEMETHODIMP XpNameSpaceTreeControl::GetNextItem(IShellItem* item, NSTCGNI nstcgi, IShellItem **ppsiNext)
+IFACEMETHODIMP XpNameSpaceTreeControl::GetNextItem(IShellItem* item, NSTCGNI nstcgi, IShellItem **pp)
 {
-	return E_NOTIMPL;
+	// TODO: nstcgi は TVGN と互換性があるか?
+	if (HTREEITEM hItem = FindItem(item))
+		if (HTREEITEM hNext = GetNextItem(hItem, nstcgi))
+			return GetItemData(hNext, pp);
+	return E_FAIL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::HitTest(POINT* pt, IShellItem** pp)
 {
-	return E_NOTIMPL;
+	TVHITTESTINFO hit = { pt->x, pt->y };
+	if (HTREEITEM hItem = HitTest(&hit))
+		return GetItemData(hItem, pp);
+	return E_FAIL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::GetItemRect(IShellItem* item, RECT* rc)
 {
-	return E_NOTIMPL;
+	if (HTREEITEM hItem = FindItem(item))
+		if (GetItemRect(hItem, rc))
+			return S_OK;
+	return E_FAIL;
 }
 
 IFACEMETHODIMP XpNameSpaceTreeControl::CollapseAll()
 {
-	return E_NOTIMPL;
+	CollapseAll();
+	return S_OK;
 }
 
 //==========================================================================================================================

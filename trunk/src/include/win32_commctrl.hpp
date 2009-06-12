@@ -152,6 +152,7 @@ public:
 	HTREEITEM	InsertItem(HTREEITEM parent, const TVITEM& item) throw()					{ return TreeView_Insert(m_hwnd, parent, item); }
 	HTREEITEM	InsertItem(HTREEITEM parent, void* data, PCWSTR name = LPSTR_TEXTCALLBACK,
 						   int icon = I_CHILDRENCALLBACK) throw()							{ return TreeView_Insert(m_hwnd, parent, data, name, icon); }
+	BOOL		DeleteItem(HTREEITEM item) throw()											{ return TreeView_DeleteItem(m_hwnd, item); }
 	void		DeleteAllItems() throw()													{ TreeView_DeleteAllItems(m_hwnd); }
 	void		Expand(HTREEITEM item, UINT tve) throw()									{ TreeView_Expand(m_hwnd, item, tve); }
 	void		EnsureVisible(HTREEITEM item) throw()										{ TreeView_EnsureVisible(m_hwnd, item); }
@@ -161,6 +162,8 @@ public:
 	HIMAGELIST	SetImageList(HIMAGELIST image, INT what = TVSIL_NORMAL) throw()				{ return TreeView_SetImageList(m_hwnd, image, what); }
 	HWND		EditLabel(HTREEITEM item) throw()											{ return TreeView_EditLabel(m_hwnd, item); }
 	void		EndEditLabelNow(bool cancel) throw()										{ TreeView_EndEditLabelNow(m_hwnd, cancel); }
+	DWORD		GetItemState(HTREEITEM item, DWORD mask) const throw()						{ return TreeView_GetItemState(m_hwnd, item, mask); }
+	void		SetItemState(HTREEITEM item, DWORD data, DWORD mask) throw()				{ TreeView_SetItemState(m_hwnd, item, data, mask); }
 };
 
 typedef TreeViewT<Hwnd>	TreeViewH;

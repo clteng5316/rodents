@@ -14,6 +14,7 @@ namespace
 		std::vector< ref<IShellItem> >	m_items;
 
 	public:
+		XpShellItemArray(size_t n, IShellItem* items[]);
 		XpShellItemArray(const CIDA* cida, IShellFolder* folder);
 		XpShellItemArray(const ITEMIDLIST* parent, IShellFolder* folder, size_t count, ITEMIDLIST** children);
 
@@ -40,6 +41,13 @@ namespace
         IFACEMETHODIMP Reset();
         IFACEMETHODIMP Clone(IEnumShellItems** pp);
 	};
+}
+
+XpShellItemArray::XpShellItemArray(size_t n, IShellItem* items[])
+{
+	m_items.reserve(n);
+	for (size_t i = 0; i < n; ++i)
+		m_items.push_back(ref<IShellItem>(items[i]));
 }
 
 XpShellItemArray::XpShellItemArray(const CIDA* cida, IShellFolder* folder_)
@@ -109,6 +117,13 @@ IFACEMETHODIMP XpShellItemArray::EnumItems(IEnumShellItems** pp)
 }
 
 //==========================================================================================================================
+
+HRESULT XpCreateShellItemArray(IShellItemArray** pp, size_t n, IShellItem* items[])
+{
+	ASSERT(n == 0 || items != null);
+	*pp = new XpShellItemArray(n, items);
+	return S_OK;
+}
 
 HRESULT XpCreateShellItemArray(IShellItemArray** pp, const CIDA* cida, IShellFolder* folder)
 {
