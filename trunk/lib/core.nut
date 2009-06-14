@@ -105,21 +105,28 @@ function paste_into()
 		beep()
 }
 
-function rename_dialog()
+local function run_rename_dialog(items, names)
 {
-	local items = this.selection
-	if (items == null || items.len() == 0)
-		return
 	local sz = ::form.size
 	local dlg = RenameDialog(::form)
 	dlg.name = "名前変更"
 	dlg.onPress = bind(standard_keymap, RenameDialog_keymap),
 	dlg.size = [sz[0] * 0.8, sz[1] * 0.6]
 	dlg.items = items
+	if (names)
+		dlg.names = names
 	dlg.run()
 }
 
-function paste_name()
+function rename_dialog()
+{
+	local items = this.selection
+	if (items == null || items.len() == 0)
+		return
+	run_rename_dialog(items, null)
+}
+
+function rename_dialog_from_clipboard()
 {
 	local items = this.selection
 	if (items == null)
@@ -131,13 +138,27 @@ function paste_name()
 	if (!text)
 		return
 	local names = split(text, "\n")
-	local sz = ::form.size
-	local dlg = RenameDialog(::form)
-	dlg.name = "名前変更"
-	dlg.size = [sz[0] * 0.8, sz[1] * 0.6]
-	dlg.items = items
-	dlg.names = (len == 1 || names.len() > 1 ? names : text)
-	dlg.run()
+	run_rename_dialog(items, len == 1 || names.len() > 1 ? names : text)
+}
+
+function rename_dialog_from_child()
+{
+	local items = this.selection
+	if (items == null || items.len() <= 0)
+		return
+	local names = []
+	foreach (i in items)
+	{
+		local name = i.name
+		if (name.endswith(".zip"))
+		{
+			name = i.children[0].name
+			if (!name.endswith(".zip"))
+				name += ".zip"
+		}
+		names.append(name)
+	}
+	run_rename_dialog(items, names)
 }
 
 //=============================================================================
