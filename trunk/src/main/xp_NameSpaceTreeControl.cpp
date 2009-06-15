@@ -38,6 +38,7 @@ namespace
 	public:
 		HTREEITEM	InsertItem(HTREEITEM parent, IShellItem* value);
 		HTREEITEM	FindItem(IShellItem* value, bool rootOnly = false);
+		void		Collapse(HTREEITEM hItem);
 		IShellItem*	GetItemData(HTREEITEM hItem);
 		HRESULT		GetItemData(HTREEITEM hItem, IShellItem** pp);
 
@@ -124,8 +125,6 @@ bool XpNameSpaceTreeControl::onNotify(NMHDR* nm, LRESULT& lResult)
 		onDeleteItem(nmtv->itemOld.hItem, (IShellItem*) nmtv->itemOld.lParam);
 		return true;
 	}
-//	case TVN_ITEMEXPANDING	, OnExpanding
-//	case TVN_ITEMEXPANDED	, OnExpanded
 //	case TVN_BEGINDRAG		, OnBeginDrag
 //	case TVN_BEGINRDRAG	, OnBeginDrag
 //	case TVN_KEYDOWN		, OnItemKeyDown
@@ -185,29 +184,45 @@ HTREEITEM XpNameSpaceTreeControl::FindItem(IShellItem* value, bool rootOnly)
 		items.push_back(parent);
 	}
 
-	std::vector< ref<IShellItem> >::reverse_iterator	i = items.rbegin();
-
-	HTREEITEM current = GetNextItem(TVI_ROOT, TVGN_CHILD);
-	current = GetNextItem(current, TVGN_CHILD);	// first child of desktop
-
-	while (current)
+	Expand(TVI_ROOT);
+	for (HTREEITEM root = GetNextItem(TVI_ROOT, TVGN_CHILD);
+		 root;
+		 root = GetNextItem(root, TVGN_NEXT))
 	{
-		if (IShellItem* item = GetItemData(current))
+		Expand(root);
+		std::vector< ref<IShellItem> >::reverse_iterator i = items.rbegin();
+		// first child of desktop
+		HTREEITEM current = GetNextItem(root, TVGN_CHILD);
+		while (current)
 		{
-			int	order;
-			if (item->Compare(*i, SICHINT_CANONICAL, &order) == S_OK)
+			if (IShellItem* item = GetItemData(current))
 			{
-				if (++i == items.rend())
-					return current;
+				int	order;
+				if (item->Compare(*i, SICHINT_CANONICAL, &order) == S_OK)
+				{
+					if (++i == items.rend())
+						return current;
 
-				Expand(current, TVE_EXPAND);
-				current = GetNextItem(current, TVGN_CHILD);
-				continue;
+					Expand(current);
+					current = GetNextItem(current, TVGN_CHILD);
+					continue;
+				}
 			}
+			current = GetNextItem(current, TVGN_NEXT);
 		}
-		current = GetNextItem(current, TVGN_NEXT);
 	}
 	return NULL;
+}
+
+void XpNameSpaceTreeControl::Collapse(HTREEITEM hItem)
+{
+	Expand(hItem, TVE_COLLAPSE | TVE_COLLAPSERESET);
+	TVITEM item = { TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_TEXT | TVIF_CHILDREN };
+	item.hItem = hItem;
+	item.pszText = LPSTR_TEXTCALLBACK;
+	item.iImage = item.iSelectedImage = I_IMAGECALLBACK;
+	item.cChildren = I_CHILDRENCALLBACK;
+	SetItem(item);
 }
 
 IShellItem* XpNameSpaceTreeControl::GetItemData(HTREEITEM hItem)
@@ -366,7 +381,7 @@ IFACEMETHODIMP XpNameSpaceTreeControl::InsertRoot(int iIndex, IShellItem* item, 
 	m_enumFlags = grfEnumFlags;
 
 	if (grfRootStyle & NSTCRS_EXPANDED)
-		Expand(hItem, TVE_EXPAND);
+		Expand(hItem);
 	if (grfRootStyle & NSTCRS_VISIBLE)
 		EnsureVisible(hItem);
 	return S_OK;
@@ -390,11 +405,17 @@ IFACEMETHODIMP XpNameSpaceTreeControl::RemoveAllRoots()
 
 IFACEMETHODIMP XpNameSpaceTreeControl::GetRootItems(IShellItemArray** items)
 {
-//	GetNextItem(TVI_ROOT, TVGN_CHILD);
-	return E_NOTIMPL;
+	std::vector<IShellItem*> roots;
+	for (HTREEITEM root = GetNextItem(TVI_ROOT, TVGN_CHILD);
+		 root;
+		 root = GetNextItem(root, TVGN_NEXT))
+	{
+		roots.push_back(GetItemData(root));
+	}
+	if (roots.empty())
+		return E_FAIL;
+	return XpCreateShellItemArray(items, roots.size(), &roots[0]);
 }
-
-		
 
 static DWORD NSTCITEMSTATE2TVIS(NSTCITEMSTATE nstcis)
 {
@@ -420,12 +441,24 @@ IFACEMETHODIMP XpNameSpaceTreeControl::SetItemState(IShellItem* item, NSTCITEMST
 	{
 		DWORD	tvisMask = NSTCITEMSTATE2TVIS(nstcisMask);
 		DWORD	tvisFlags = NSTCITEMSTATE2TVIS(nstcisFlags);
+
 		// SELECTED Ç»çÄñ⁄Ç™ï°êîÇ…Ç»Ç¡ÇƒÇµÇ‹Ç§ÇÃÇ≈ SelectItem Ç≈çsÇ§
 		if (tvisMask & TVIS_SELECTED)
 		{
 			tvisMask &= ~TVIS_SELECTED;
 			SelectItem(hItem);
 		}
+
+		// EXPANDED ÇÕå¯â Ç™ñ≥Ç¢Ç‡ÇÊÇ§
+		if (tvisMask & TVIS_EXPANDED)
+		{
+			tvisMask &= ~TVIS_EXPANDED;
+			if (tvisFlags & TVIS_EXPANDED)
+				Expand(hItem);
+			else
+				Collapse(hItem);
+		}
+
 		SetItemState(hItem, tvisFlags, tvisMask);
 		return S_OK;
 	}
@@ -504,7 +537,12 @@ IFACEMETHODIMP XpNameSpaceTreeControl::GetItemRect(IShellItem* item, RECT* rc)
 
 IFACEMETHODIMP XpNameSpaceTreeControl::CollapseAll()
 {
-	CollapseAll();
+	for (HTREEITEM hItem = GetNextItem(TVI_ROOT, TVGN_CHILD);
+		 hItem;
+		 hItem = GetNextItem(hItem, TVGN_NEXT))
+	{
+		Collapse(hItem);
+	}
 	return S_OK;
 }
 

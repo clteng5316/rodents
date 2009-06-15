@@ -279,7 +279,7 @@ HRESULT	PathCreate(IShellItem** pp, IShellFolder* folder, const ITEMIDLIST* pare
 HRESULT	PathCreate(IShellItem** pp, const ITEMIDLIST* item);
 HRESULT	PathCreate(IShellItem** pp, IShellItem* parent, PCWSTR name);
 HRESULT	PathBrowsable(IShellItem* item) throw();
-HBITMAP	PathGetThumbnail(IShellItem* item) throw();
+HBITMAP	PathThumbnail(IShellItem* item) throw();
 HRESULT PathStat(IShellItem* item, WIN32_FIND_DATA* stat) throw();
 HRESULT	PathChildren(IShellItem* item, IEnumShellItems** e) throw();
 

@@ -144,6 +144,7 @@ public:
 	BOOL		GetItemRect(HTREEITEM item, RECT* rc, BOOL textonly = TRUE) const throw()	{ return TreeView_GetItemRect(m_hwnd, item, rc, textonly); }
 	HTREEITEM	GetNextItem(HTREEITEM item, UINT flags) const throw()						{ return TreeView_GetNextItem(m_hwnd, item, flags); }
 	HTREEITEM	GetChildItem(HTREEITEM item) const throw()									{ return TreeView_GetChild(m_hwnd, item); }
+	BOOL		GetItem(TVITEM* item) const throw()											{ return TreeView_GetItem(m_hwnd, item); }
 	void		SetItem(const TVITEM& item) throw()											{ VERIFY( TreeView_SetItem(m_hwnd, &item) ); }
 	HTREEITEM	GetSelection() const throw()												{ return TreeView_GetSelection(m_hwnd); }
 	HTREEITEM	GetDropHilight() const throw()												{ return TreeView_GetDropHilight(m_hwnd); }
@@ -154,7 +155,7 @@ public:
 						   int icon = I_CHILDRENCALLBACK) throw()							{ return TreeView_Insert(m_hwnd, parent, data, name, icon); }
 	BOOL		DeleteItem(HTREEITEM item) throw()											{ return TreeView_DeleteItem(m_hwnd, item); }
 	void		DeleteAllItems() throw()													{ TreeView_DeleteAllItems(m_hwnd); }
-	void		Expand(HTREEITEM item, UINT tve) throw()									{ TreeView_Expand(m_hwnd, item, tve); }
+	void		Expand(HTREEITEM item, UINT tve = TVE_EXPAND) throw()						{ TreeView_Expand(m_hwnd, item, tve); }
 	void		EnsureVisible(HTREEITEM item) throw()										{ TreeView_EnsureVisible(m_hwnd, item); }
 	void		SelectItem(HTREEITEM item) throw()											{ VERIFY( TreeView_SelectItem(m_hwnd, item) ); }
 	HTREEITEM	SelectItem(int x, int y) throw()											{ return TreeView_SelectItemByPos(m_hwnd, x, y); }
