@@ -169,8 +169,44 @@ HTREEITEM XpNameSpaceTreeControl::InsertItem(HTREEITEM parent, IShellItem* value
 	return hItem;
 }
 
+// FIXME: このルーチンでは最上位がデスクトップで無いと働かない。
 HTREEITEM XpNameSpaceTreeControl::FindItem(IShellItem* value, bool rootOnly)
 {
+	std::vector< ref<IShellItem> >	items;
+	items.push_back(ref<IShellItem>(value));
+	for (;;)
+	{
+		ref<IShellItem> parent;
+		if FAILED(items.back()->GetParent(&parent))
+		{
+			items.pop_back();	// デスクトップは削る
+			break;
+		}
+		items.push_back(parent);
+	}
+
+	std::vector< ref<IShellItem> >::reverse_iterator	i = items.rbegin();
+
+	HTREEITEM current = GetNextItem(TVI_ROOT, TVGN_CHILD);
+	current = GetNextItem(current, TVGN_CHILD);	// first child of desktop
+
+	while (current)
+	{
+		if (IShellItem* item = GetItemData(current))
+		{
+			int	order;
+			if (item->Compare(*i, SICHINT_CANONICAL, &order) == S_OK)
+			{
+				if (++i == items.rend())
+					return current;
+
+				Expand(current, TVE_EXPAND);
+				current = GetNextItem(current, TVGN_CHILD);
+				continue;
+			}
+		}
+		current = GetNextItem(current, TVGN_NEXT);
+	}
 	return NULL;
 }
 
@@ -237,6 +273,12 @@ void XpNameSpaceTreeControl::onGetDispInfo(NMTVDISPINFO& disp)
 					if (attr & SFGAO_FOLDER)
 					{
 						if ((m_enumFlags & SHCONTF_FOLDERS) == 0)
+							continue;
+						// ZIP書庫もフォルダ扱いになってしまうので、
+						// 実ファイルでディレクトリでないものは除外する
+						CoStr path;
+						if (SUCCEEDED(child->GetDisplayName(SIGDN_FILESYSPATH, &path)) &&
+							!PathIsDirectory(path))
 							continue;
 					}
 					else
@@ -352,12 +394,39 @@ IFACEMETHODIMP XpNameSpaceTreeControl::GetRootItems(IShellItemArray** items)
 	return E_NOTIMPL;
 }
 
+		
+
+static DWORD NSTCITEMSTATE2TVIS(NSTCITEMSTATE nstcis)
+{
+	DWORD	tvis = 0;
+	if (nstcis & NSTCIS_SELECTED)	{ tvis |= TVIS_SELECTED; }
+	if (nstcis & NSTCIS_EXPANDED)	{ tvis |= TVIS_EXPANDED; }
+	if (nstcis & NSTCIS_BOLD)		{ tvis |= TVIS_BOLD; }
+	return tvis;
+}
+
+static NSTCITEMSTATE TVIS2NSTCITEMSTATE(DWORD tvis)
+{
+	NSTCITEMSTATE	nstcis = 0;
+	if (tvis & TVIS_SELECTED)	{ nstcis |= NSTCIS_SELECTED; }
+	if (tvis & TVIS_EXPANDED)	{ nstcis |= NSTCIS_EXPANDED; }
+	if (tvis & TVIS_BOLD)		{ nstcis |= NSTCIS_BOLD; }
+	return nstcis;
+}
+
 IFACEMETHODIMP XpNameSpaceTreeControl::SetItemState(IShellItem* item, NSTCITEMSTATE nstcisMask, NSTCITEMSTATE nstcisFlags)
 {
-	// TODO: NSTCITEMSTATE は TVIS と互換性があるか?
 	if (HTREEITEM hItem = FindItem(item))
 	{
-		SetItemState(hItem, nstcisMask, nstcisFlags);
+		DWORD	tvisMask = NSTCITEMSTATE2TVIS(nstcisMask);
+		DWORD	tvisFlags = NSTCITEMSTATE2TVIS(nstcisFlags);
+		// SELECTED な項目が複数になってしまうので SelectItem で行う
+		if (tvisMask & TVIS_SELECTED)
+		{
+			tvisMask &= ~TVIS_SELECTED;
+			SelectItem(hItem);
+		}
+		SetItemState(hItem, tvisFlags, tvisMask);
 		return S_OK;
 	}
 	return E_FAIL;
@@ -365,10 +434,11 @@ IFACEMETHODIMP XpNameSpaceTreeControl::SetItemState(IShellItem* item, NSTCITEMST
 
 IFACEMETHODIMP XpNameSpaceTreeControl::GetItemState(IShellItem* item, NSTCITEMSTATE nstcisMask, NSTCITEMSTATE *pnstcisFlags)
 {
-	// TODO: NSTCITEMSTATE は TVIS と互換性があるか?
 	if (HTREEITEM hItem = FindItem(item))
 	{
-		*pnstcisFlags = GetItemState(hItem, nstcisMask);
+		DWORD	tvisMask = NSTCITEMSTATE2TVIS(nstcisMask);
+		DWORD	tvisFlags = GetItemState(hItem, tvisMask);
+		*pnstcisFlags = TVIS2NSTCITEMSTATE(tvisFlags);
 		return S_OK;
 	}
 	return E_FAIL;

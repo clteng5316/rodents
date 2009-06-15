@@ -312,11 +312,10 @@ IFACEMETHODIMP XpKnownFolder::GetPath(DWORD dwFlags, LPWSTR *ppszPath)
 		return E_POINTER;
 
 	WCHAR	path[MAX_PATH];
-	BOOL	ok;
 
-	ok = (m_desc.csidl >= 0 && SHGetSpecialFolderPath(GetWindow(), path, m_desc.csidl, false));
-
-	if (!ok && m_desc.path && m_desc.path[0] != L':')
+	if (m_desc.csidl >= 0 && SHGetSpecialFolderPath(GetWindow(), path, m_desc.csidl, false))
+		;
+	else if (m_desc.path && m_desc.path[0] != L':')
 		PathCombine(path, PATH_ROOT, m_desc.path);
 	else
 		return E_FAIL;
