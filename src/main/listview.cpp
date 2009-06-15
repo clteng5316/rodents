@@ -647,7 +647,7 @@ void ListView::onPreviewUpdate()
 		return;
 	}
 
-	if (BitmapH bitmap = PathGetThumbnail(preview_item))
+	if (BitmapH bitmap = PathThumbnail(preview_item))
 	{
 		int mode = get_mode();
 

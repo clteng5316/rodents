@@ -267,7 +267,7 @@ static HRESULT StreamFromChildren(IStream** pp, IShellItem* item)
 
 const int THUMBNAIL_SIZE = 256;
 
-HBITMAP PathGetThumbnail(IShellItem* item)
+HBITMAP PathThumbnail(IShellItem* item)
 {
 	if (!item)
 		return null;
