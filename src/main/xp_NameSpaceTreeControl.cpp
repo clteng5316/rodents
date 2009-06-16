@@ -100,8 +100,17 @@ LRESULT XpNameSpaceTreeControl::onMessage(UINT msg, WPARAM wParam, LPARAM lParam
 {
 	switch (msg)
 	{
+	case WM_LBUTTONDOWN:
+		onClick(NSTCECT_LBUTTON, GET_XY_LPARAM(lParam));
+		return 0;
+	case WM_LBUTTONDBLCLK:
+		onClick(NSTCECT_LBUTTON | NSTCECT_DBLCLICK, GET_XY_LPARAM(lParam));
+		return 0;
 	case WM_MBUTTONDOWN:
 		onClick(NSTCECT_MBUTTON, GET_XY_LPARAM(lParam));
+		return 0;
+	case WM_MBUTTONDBLCLK:
+		onClick(NSTCECT_MBUTTON | NSTCECT_DBLCLICK, GET_XY_LPARAM(lParam));
 		return 0;
 	case WM_NCDESTROY:
 	{
@@ -128,7 +137,12 @@ bool XpNameSpaceTreeControl::onNotify(NMHDR* nm, LRESULT& lResult)
 //	case TVN_BEGINDRAG		, OnBeginDrag
 //	case TVN_BEGINRDRAG	, OnBeginDrag
 //	case TVN_KEYDOWN		, OnItemKeyDown
-//	case TVN_SELCHANGED	, OnSelChanged)
+//	case TVN_SELCHANGED:
+//	{
+//		NMTREEVIEW* nmtv = (NMTREEVIEW*) nm;
+//		OnSelChanged(nmtv->itemNew.hItem, (IShellItem*) nmtv->itemNew.lParam);
+//		return true;
+//	}
 	case TVN_GETDISPINFO:
 		onGetDispInfo(*(NMTVDISPINFO*) nm);
 		return true;
@@ -149,14 +163,10 @@ void XpNameSpaceTreeControl::onClick(NSTCECLICKTYPE nstcect, int x, int y)
 	TVHITTESTINFO hit = { x, y };
 	if (HTREEITEM hItem = HitTest(&hit))
 	{
-		if (hItem != GetSelection())
-		{
-			if (nstcect == NSTCECT_MBUTTON)
-				SelectItem(hItem);
-			IShellItem* item = GetItemData(hItem);
-			// TVHT and NSTCEHT are compatible.
-			m_handler->OnItemClick(item, hit.flags, nstcect);
-		}
+		SelectItem(hItem);
+		UpdateWindow(m_hwnd);
+		// TVHT and NSTCEHT are compatible.
+		m_handler->OnItemClick(GetItemData(hItem), hit.flags, nstcect);
 	}
 }
 
