@@ -7,6 +7,9 @@
 
 extern void HidePreview(HWND hwnd);
 
+//==========================================================================================================================
+// hotkeys
+
 SQInteger get_hotkeys(sq::VM v)
 {
 	sq_pushregistrytable(v);
@@ -127,6 +130,8 @@ void sq::push(HSQUIRRELVM v, HWND value) throw()
 	else
 		sq_pushnull(v);
 }
+
+//==========================================================================================================================
 
 static Window* m_headobj;
 
@@ -398,6 +403,10 @@ LRESULT Window::onMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_SHNOTIFY:
 		SHNotifyMessage(wParam, lParam);
 		return 0;
+	case WM_LBUTTONDOWN:
+		if (onLButtonDown(GET_XY_LPARAM(lParam), GET_KEYSTATE_WPARAM(wParam)))
+			return 0;
+		break;
 	case WM_UPDATEUISTATE:
 		if (m_updated)
 		{

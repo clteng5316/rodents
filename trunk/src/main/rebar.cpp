@@ -191,9 +191,12 @@ namespace
 		}
 	};
 
-	const DWORD		INCLUDE_HIDDEN	= 1;
-	const DWORD		INCLUDE_CENTER	= 2;
-	const DWORD		FIRST_CENTER	= 4;
+	const DWORD		INCLUDE_HIDDEN	= 0x01;
+	const DWORD		INCLUDE_CENTER	= 0x02;
+	const DWORD		INCLUDE_NS		= 0x04;
+	const DWORD		INCLUDE_WE		= 0x08;
+	const DWORD		INCLUDE_ALL		= INCLUDE_CENTER | INCLUDE_NS | INCLUDE_WE;
+	const DWORD		FIRST_CENTER	= 0x10;
 
 	class Layout
 	{
@@ -225,6 +228,14 @@ namespace
 	private:
 		static BOOL CALLBACK OnEnum(HWND hwnd, LPARAM lParam);
 	};
+
+	static int GetPaddingW()
+	{
+		int r = ::GetSystemMetrics(SM_CXBORDER);
+		if (r < 1)
+			r = 1;
+		return r;
+	}
 }
 
 BOOL CALLBACK Layout::OnEnum(HWND hwnd, LPARAM lParam)
@@ -238,7 +249,15 @@ BOOL CALLBACK Layout::OnEnum(HWND hwnd, LPARAM lParam)
 			Child c = { hwnd, w->get_dock() };
 			switch (c.dock)
 			{
-			case NONE:
+			case NORTH:
+			case SOUTH:
+				if (self->m_flags & INCLUDE_NS)
+					self->m_children.push_back(c);
+				break;
+			case WEST:
+			case EAST:
+				if (self->m_flags & INCLUDE_WE)
+					self->m_children.push_back(c);
 				break;
 			case CENTER:
 				if (self->m_flags & (FIRST_CENTER | INCLUDE_CENTER))
@@ -247,8 +266,6 @@ BOOL CALLBACK Layout::OnEnum(HWND hwnd, LPARAM lParam)
 					return FALSE;
 				break;
 			default:
-				if ((self->m_flags & FIRST_CENTER) == 0)
-					self->m_children.push_back(c);
 				break;
 			}
 		}
@@ -267,7 +284,7 @@ const Layout::Children& Layout::Enum(HWND hwnd, DWORD flags)
 
 void Layout::Do(HWND hwnd, RECT bounds)
 {
-	Enum(hwnd, INCLUDE_CENTER);
+	Enum(hwnd, INCLUDE_ALL);
 
 	std::stable_sort(m_children.begin(), m_children.end(), Child::Sort());
 
@@ -333,7 +350,7 @@ void Layout::Do(HWND hwnd, RECT bounds)
 
 	const int BORDER_W = ::GetSystemMetrics(SM_CXFIXEDFRAME);
 	const int BORDER_H = ::GetSystemMetrics(SM_CYFIXEDFRAME);
-	const int PADDING_W = 0;
+	const int PADDING_W = GetPaddingW();
 	const int PADDING_H = 0;
 
 	int width  = (RECT_W(bounds) - PADDING_W*2) - BORDER_W * (horz-1);
@@ -429,7 +446,7 @@ void Window::onContextMenu(int x, int y)
 	std::vector<HWND> rebar;
 
 	Layout layout;
-	const Layout::Children& children = layout.Enum(m_hwnd, INCLUDE_HIDDEN);
+	const Layout::Children& children = layout.Enum(m_hwnd, INCLUDE_NS | INCLUDE_WE | INCLUDE_HIDDEN);
 
 	size_t count = children.size();
 	if (count == 0)
@@ -511,7 +528,7 @@ void Window::onContextMenu(int x, int y)
 SQInteger Window::get_children(sq::VM v)
 {
 	Layout layout;
-	const Layout::Children& children = layout.Enum(m_hwnd, INCLUDE_HIDDEN | INCLUDE_CENTER);
+	const Layout::Children& children = layout.Enum(m_hwnd, INCLUDE_HIDDEN | INCLUDE_ALL);
 
 	v.newarray();
 	for (Layout::Children::const_iterator i = children.begin(); i != children.end(); ++i)
@@ -526,6 +543,66 @@ SQInteger Window::get_children(sq::VM v)
 	return 1;
 }
 
+bool Window::onLButtonDown(int x, int y, UINT mods)
+{
+	Window* child = null;
+	Layout layout;
+	const Layout::Children& children = layout.Enum(m_hwnd, INCLUDE_WE);
+	LONG	(RECT::*m_x) = 0;
+	LONG	rx = 0;
+
+	int border = GetPaddingW();
+
+	for (Layout::Children::const_iterator i = children.begin(); i != children.end(); ++i)
+	{
+		if (Window* w = Window::from(i->hwnd))
+		{
+			RECT bounds = w->get_bounds();
+			m_x = (w->get_dock() == WEST ? &RECT::right : &RECT::left);
+			rx = bounds.*m_x;
+			if (math::abs(rx - x) < border)
+			{
+				child = w;
+				break;
+			}
+		}
+	}
+
+	if (!child)
+		return false;
+
+	const LONG MIN_WIDTH = 32;
+	static HCURSOR hCursorWE = ::LoadCursor(NULL, IDC_SIZEWE);
+
+	SetCapture();
+	HCURSOR hCursor = ::SetCursor(hCursorWE);
+	while (IsKeyPressed(VK_LBUTTON))
+	{
+		MSG msg;
+		while (::PeekMessage(&msg, null, 0, 0, PM_REMOVE))
+		{
+			if (WM_MOUSEFIRST <= msg.message && msg.message <= WM_MOUSELAST)
+			{
+				POINT pt = { GET_XY_LPARAM(msg.lParam) };
+				::MapWindowPoints(msg.hwnd, m_hwnd, &pt, 1);
+				RECT rc = child->get_bounds();
+				rc.*m_x = rx + pt.x - x;
+				if (rc.right - rc.left > MIN_WIDTH)
+					child->set_bounds(rc);
+			}
+			else
+			{
+				::TranslateMessage(&msg);
+				::DispatchMessage(&msg);
+			}
+		}
+	}
+	::SetCursor(hCursor);
+	ReleaseCapture();
+
+	return true;
+}
+
 //================================================================================
 
 RECT Window::get_CenterArea() const throw()
@@ -534,7 +611,7 @@ RECT Window::get_CenterArea() const throw()
 	GetClientRect(m_hwnd, &bounds);
 
 	Layout layout;
-	const Layout::Children& children = layout.Enum(m_hwnd, 0);
+	const Layout::Children& children = layout.Enum(m_hwnd, INCLUDE_NS | INCLUDE_WE);
 
 	size_t count = children.size();
 	for (size_t index = 0; index < count; ++index)

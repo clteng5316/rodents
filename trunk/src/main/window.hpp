@@ -93,6 +93,7 @@ protected:
 	virtual void	onDragLeave();
 
 private:
+	bool	onLButtonDown(int x, int y, UINT mods);
 	void	onContextMenu(int x, int y) throw();
 	void	doUpdate() throw();
 	static bool	handlePress(const MSG& msg);
