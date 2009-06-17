@@ -60,6 +60,9 @@ LRESULT ToolBar::onMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;
+	case WM_SIZE:
+		SetItemSize(GET_X_LPARAM(lParam) - MARGIN, -1);
+		break;
 	case TB_PRESSBUTTON:
 		if (m_inDropDown)
 			return 0;

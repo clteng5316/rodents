@@ -232,8 +232,8 @@ namespace
 	static int GetPaddingW()
 	{
 		int r = ::GetSystemMetrics(SM_CXBORDER);
-		if (r < 1)
-			r = 1;
+		if (r < 2)
+			r = 2;
 		return r;
 	}
 }
