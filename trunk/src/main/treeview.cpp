@@ -27,6 +27,7 @@ namespace
 				control->TreeAdvise(events, &cookie);
 			RECT rc = bounds;
 			if SUCCEEDED(hr = control->Initialize(hwnd, &rc,
+				NSTCS_BORDER |
 				NSTCS_HASEXPANDOS |
 				NSTCS_SINGLECLICKEXPAND |
 				NSTCS_SPRINGEXPAND |

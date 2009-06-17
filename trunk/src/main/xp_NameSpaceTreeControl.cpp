@@ -331,11 +331,25 @@ IFACEMETHODIMP XpNameSpaceTreeControl::Initialize(HWND hwndParent, RECT* rc, NST
 
 	InitCommonControls(ICC_TREEVIEW_CLASSES);
 
+	DWORD	style = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+	DWORD	styleEx = 0;
+
+	// style
+	if (nsctsFlags & NSTCS_HASEXPANDOS)
+		style |= TVS_HASBUTTONS;
+	if (nsctsFlags & NSTCS_SHOWSELECTIONALWAYS)
+		style |= TVS_SHOWSELALWAYS;
+	if (nsctsFlags & NSTCS_SINGLECLICKEXPAND)
+		style |= TVS_SINGLEEXPAND;
+	// styleEx
+	if (nsctsFlags & NSTCS_BORDER)
+		styleEx |= WS_EX_CLIENTEDGE;
+
 	m_hwnd = CreateWindowEx(
-		WS_EX_CLIENTEDGE,
+		styleEx,
 		WC_TREEVIEW,
 		null,
-		WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | TVS_HASBUTTONS | TVS_SHOWSELALWAYS,
+		style,
 		RECT_XYWH(*rc),
 		hwndParent,
 		null,
