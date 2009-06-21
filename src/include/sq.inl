@@ -43,20 +43,6 @@ inline void sq::get(HSQUIRRELVM v, SQInteger idx, HSQOBJECT* value) throw(Error)
 		throw Error();
 }
 
-template < typename First, typename Second >
-inline void sq::get(HSQUIRRELVM v, SQInteger idx, std::pair<First, Second>* value) throw(Error)
-{
-	try
-	{
-		sq::get(v, idx, &value->first);
-	}
-	catch (sq::Error&)
-	{
-		sq_reseterror(v);
-		sq::get(v, idx, &value->second);
-	}
-}
-
 template < typename TImplements, typename TMixin > class Unknown;
 
 namespace sq
