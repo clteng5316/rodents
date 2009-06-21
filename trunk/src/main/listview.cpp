@@ -1269,62 +1269,54 @@ ref<IShellItem>	ListView::get_path() const
 	return value;
 }
 
-void ListView::set_path(std::pair<PCWSTR, IShellItem*> value)
+SQInteger ListView::set_path(sq::VM v)
 {
 	HRESULT hr;
-	if (value.first)
-	{
-		PCWSTR s = value.first;
-		if (wcscmp(s, L"..") == 0)
-			hr = BrowseObject(NULL, SBSP_SAMEBROWSER | SBSP_PARENT);
-		else if (wcscmp(s, L"<") == 0)
-			hr = BrowseObject(NULL, SBSP_SAMEBROWSER | SBSP_NAVIGATEBACK);
-		else if (wcscmp(s, L">") == 0)
-			hr = BrowseObject(NULL, SBSP_SAMEBROWSER | SBSP_NAVIGATEFORWARD);
-		else
-			hr = BrowseObject(ILCreate(s), SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
-	}
+
+	if (sq_gettype(v, 2) == OT_USERDATA)
+		hr = BrowseObject(v.get<IShellItem*>(2));
 	else
-	{
-		hr = BrowseObject(ILCreate(value.second), SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
-	}
+		hr = BrowseObject(v.tostring(2));
+
 	if FAILED(hr)
 		throw sq::Error(hr, L"ListView.set_path()");
+
+	return 0;
 }
 
-/*
-void sq::push(HSQUIRRELVM v, IEnumIDList* value) throw()
+HRESULT ListView::BrowseObject(PCWSTR value)
 {
-	if (value)
-	{
-		sq_newarray(v, 0);
-		ITEMIDLIST* pidl;
-		while (value->Next(1, &pidl, NULL) == S_OK)
-		{
-			ref<IShellItem> item;
-			if SUCCEEDED(PathCreate(&item, pidl))
-			{
-				sq::push(v, item);
-				sq_arrayappend(v, -2);
-			}
-			ILFree(pidl);
-		}
-	}
+	HRESULT hr;
+	if (wcscmp(value, L"..") == 0)
+		hr = BrowseObject(NULL, SBSP_SAMEBROWSER | SBSP_PARENT);
+	else if (wcscmp(value, L"<") == 0)
+		hr = BrowseObject(NULL, SBSP_SAMEBROWSER | SBSP_NAVIGATEBACK);
+	else if (wcscmp(value, L">") == 0)
+		hr = BrowseObject(NULL, SBSP_SAMEBROWSER | SBSP_NAVIGATEFORWARD);
 	else
-		sq_pushnull(v);
+		hr = BrowseObject(ILCreate(value), SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
+	return hr;
 }
-ref<IEnumIDList> ListView::get_items() const
-{
-	ref<IEnumIDList>	items;
 
-	ref<IFolderView> fv;
-	if (SUCCEEDED(GetCurrentView(&fv)) &&
-		SUCCEEDED(fv->Items(SVGIO_ALLVIEW, IID_PPV_ARGS(&items))))
+HRESULT ListView::BrowseObject(IShellItem* value)
+{
+	return BrowseObject(ILCreate(value), SBSP_SAMEBROWSER | SBSP_ABSOLUTE);
+}
+
+ref<IShellItemArray> ListView::get_items() const
+{
+	ref<IShellItemArray>	items;
+
+	if (m_listview.GetItemCount() == 0)
+		return null;
+
+	ref<IShellView> view;
+	if (SUCCEEDED(GetCurrentView(&view)) &&
+		SUCCEEDED(PathsCreate(&items, view, SVGIO_ALLVIEW | SVGIO_FLAG_VIEWORDER)))
 		return items;
 
 	return null;
 }
-*/
 
 ref<IShellItemArray> ListView::get_selection() const
 {

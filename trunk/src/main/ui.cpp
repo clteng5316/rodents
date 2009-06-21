@@ -254,7 +254,7 @@ SQInteger def_ui(sq::VM v)
 	def_property(sorting);
 	def_method(adjust);
 	def_method(bury);
-//	def_method(get_items);
+	def_method(get_items);
 	def_method(item);
 	def_method(len);
 	def_method(newfile);

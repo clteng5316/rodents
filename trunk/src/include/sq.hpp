@@ -47,9 +47,6 @@ namespace sq
 	void get(HSQUIRRELVM v, SQInteger idx, object**   value) throw(Error);
 	void get(HSQUIRRELVM v, SQInteger idx, REFINTF    value) throw(Error);
 
-	template < typename First, typename Second >
-	void get(HSQUIRRELVM v, SQInteger idx, std::pair<First, Second>* value) throw(Error);
-
 	template < typename T >
 	void get(HSQUIRRELVM v, SQInteger idx, T** value) throw(Error);
 
