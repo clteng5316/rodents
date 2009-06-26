@@ -11,13 +11,9 @@
 
 ■ ソースコードの構成
 
-- core
-	アプリケーションの実体です。Python モジュールになっています。
-- core/xp
-	Windows XP 上で、Vista との互換性を実現します。
-- graphics.gdiplus
-	画像処理モジュールです。GDI+ を利用する実装です。
 - include
 	共通のヘッダファイルです。
 - main
 	実際のエントリポイントです。
+- squirrel
+	Squirrel ライブラリです。
