@@ -195,6 +195,11 @@ HTREEITEM XpNameSpaceTreeControl::FindItem(IShellItem* value, bool rootOnly)
 	}
 
 	Expand(TVI_ROOT);
+
+	// 空ならばデスクトップ
+	if (items.empty())
+		return GetNextItem(TVI_ROOT, TVGN_CHILD);
+
 	for (HTREEITEM root = GetNextItem(TVI_ROOT, TVGN_CHILD);
 		 root;
 		 root = GetNextItem(root, TVGN_NEXT))
@@ -339,8 +344,6 @@ IFACEMETHODIMP XpNameSpaceTreeControl::Initialize(HWND hwndParent, RECT* rc, NST
 		style |= TVS_HASBUTTONS;
 	if (nsctsFlags & NSTCS_SHOWSELECTIONALWAYS)
 		style |= TVS_SHOWSELALWAYS;
-	if (nsctsFlags & NSTCS_SINGLECLICKEXPAND)
-		style |= TVS_SINGLEEXPAND;
 	// styleEx
 	if (nsctsFlags & NSTCS_BORDER)
 		styleEx |= WS_EX_CLIENTEDGE;
