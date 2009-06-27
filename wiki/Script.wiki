@@ -85,8 +85,8 @@ Squirrel VM または標準ライブラリに対して以下の変更を行っ�
   * name : 名前
   * width : 幅
   * height : 高さ
-  * location : 位置 as [x, y]
-  * size : サイズ as [w, h]
+  * location : 位置 as `[x, y]`
+  * size : サイズ as `[w, h]`
   * parent : 親ウィンドウ
   * visible : 表示状態
   * close () : 閉じます。
