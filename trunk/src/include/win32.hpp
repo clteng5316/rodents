@@ -397,6 +397,7 @@ extern HRESULT XpCreateShellItemArray(IShellItemArray** pp, const CIDA* cida, IS
 extern HRESULT XpCreateShellItemArray(IShellItemArray** pp, const ITEMIDLIST* parent, IShellFolder* folder, size_t count, ITEMIDLIST** children);
 extern HRESULT XpExplorerBrowserCreate(REFINTF pp);
 extern HRESULT XpKnownFolderManagerCreate(REFINTF pp);
+extern HRESULT XpKnownFolderCreate(IKnownFolder** pp, REFKNOWNFOLDERID id);
 extern HRESULT XpNameSpaceTreeControlCreate(REFINTF pp);
 extern HRESULT XpFileOpenDialogCreate(REFINTF pp);
 extern HRESULT XpFileSaveDialogCreate(REFINTF pp);

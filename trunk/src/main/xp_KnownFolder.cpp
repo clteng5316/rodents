@@ -295,8 +295,34 @@ IFACEMETHODIMP XpKnownFolder::GetCategory(KF_CATEGORY *pCategory)
 	return E_NOTIMPL;
 }
 
+static HRESULT VistaGetPersonal(IShellItem** pp)
+{
+	HRESULT	hr;
+	ref<IKnownFolderManager> manager;
+	ref<IKnownFolder> contacts;
+	ref<IShellItem> child;
+	if (SUCCEEDED(hr = manager.newobj(CLSID_KnownFolderManager)) &&
+		SUCCEEDED(hr = manager->GetFolder(FOLDERID_Contacts, &contacts)) &&
+		SUCCEEDED(hr = contacts->GetShellItem(0, IID_PPV_ARGS(&child))) &&
+		SUCCEEDED(hr = child->GetParent(pp)))
+		return S_OK;
+	else
+		return hr;
+}
+
 IFACEMETHODIMP XpKnownFolder::GetShellItem(DWORD dwFlags, REFIID riid, void **pp)
 {
+	if (WINDOWS_VERSION >= WINDOWS_VISTA &&
+		m_desc.csidl == CSIDL_PROFILE)
+	{
+		// Vista では CSIDL_PERSONAL の動作がおかしいので
+		// 代わりに「FOLDERID_Contacts の親フォルダ」を使う。
+		ref<IShellItem> item;
+		if (SUCCEEDED(VistaGetPersonal(&item)) &&
+			SUCCEEDED(item->QueryInterface(riid, pp)))
+			return S_OK;
+	}
+
 	HRESULT	hr;
 	ILPtr id;
 	ref<IShellItem> item;
@@ -310,6 +336,17 @@ IFACEMETHODIMP XpKnownFolder::GetPath(DWORD dwFlags, LPWSTR *ppszPath)
 {
 	if (!ppszPath)
 		return E_POINTER;
+
+	if (WINDOWS_VERSION >= WINDOWS_VISTA &&
+		m_desc.csidl == CSIDL_PROFILE)
+	{
+		// Vista では CSIDL_PERSONAL の動作がおかしいので
+		// 代わりに「FOLDERID_Contacts の親フォルダ」を使う。
+		ref<IShellItem> item;
+		if (SUCCEEDED(VistaGetPersonal(&item)) &&
+			SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, ppszPath)))
+			return S_OK;
+	}
 
 	WCHAR	path[MAX_PATH];
 
@@ -332,6 +369,17 @@ IFACEMETHODIMP XpKnownFolder::SetPath(DWORD dwFlags, PCWSTR pszPath)
 
 IFACEMETHODIMP XpKnownFolder::GetIDList(DWORD dwFlags, PIDLIST_ABSOLUTE *ppidl)
 {
+	if (WINDOWS_VERSION >= WINDOWS_VISTA &&
+		m_desc.csidl == CSIDL_PROFILE)
+	{
+		// Vista では CSIDL_PERSONAL の動作がおかしいので
+		// 代わりに「FOLDERID_Contacts の親フォルダ」を使う。
+		ref<IShellItem> item;
+		if (SUCCEEDED(VistaGetPersonal(&item)) &&
+			(*ppidl = ILCreate(item).detach()) != NULL)
+			return S_OK;
+	}
+
 	if (m_desc.csidl >= 0)
 		return ::SHGetSpecialFolderLocation(GetWindow(), m_desc.csidl, ppidl);
 
@@ -369,4 +417,9 @@ IFACEMETHODIMP XpKnownFolder::GetFolderDefinition(KNOWNFOLDER_DEFINITION *pKFD)
 HRESULT XpKnownFolderManagerCreate(REFINTF pp)
 {
 	return theXpKnownFolderManager.QueryInterface(pp);
+}
+
+HRESULT XpKnownFolderCreate(IKnownFolder** pp, REFKNOWNFOLDERID id)
+{
+	return theXpKnownFolderManager.GetFolder(id, pp);
 }

@@ -407,11 +407,22 @@ HRESULT KnownFolderCreate(IKnownFolder** pp, PCWSTR path, PCWSTR* leaf)
 		if SUCCEEDED(manager.newobj(CLSID_KnownFolderManager))
 		{
 			KNOWNFOLDERID	id;
-			if (path[0] == L'{' && 
+			if (WINDOWS_VERSION >= WINDOWS_VISTA &&
+				wcscmp(path, L"{5E6C858F-0E22-4760-9AFE-EA3317B67173}") == 0)
+			{
+				// Vista ‚Å‚Í FOLDERID_Profile ‚Ì“®ì‚ª‚¨‚©‚µ‚¢‚Ì‚Å
+				// Ž©‘OŽÀ‘•”Å‚ðŽg‚¤B
+				return XpKnownFolderCreate(pp, FOLDERID_Profile);
+			}
+			else if (path[0] == L'{' &&
 				SUCCEEDED(CLSIDFromString((LPOLESTR)path, &id)))
+			{
 				return manager->GetFolder(id, pp);
+			}
 			else
+			{
 				return manager->GetFolderByName(path, pp);
+			}
 		}
 	}
 	return E_FAIL;
