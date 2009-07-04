@@ -102,7 +102,7 @@ void sq_setnativedebughook(HSQUIRRELVM v,SQDEBUGHOOK hook)
 {
 	v->_debughook_native = hook;
 	v->_debughook_closure = _null_;
-	v->_debughook = hook?false:true;
+	v->_debughook = hook?true:false;
 }
 
 void sq_setdebughook(HSQUIRRELVM v)
@@ -111,9 +111,7 @@ void sq_setdebughook(HSQUIRRELVM v)
 	if(sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
 		v->_debughook_closure = o;
 		v->_debughook_native = NULL;
-		if(sq_isnull(o)) {
-			v->_debughook = false;
-		}
+		v->_debughook = !sq_isnull(o);
 		v->Pop();
 	}
 }
@@ -819,7 +817,7 @@ SQRESULT sq_rawdeleteslot(HSQUIRRELVM v,SQInteger idx,SQBool pushval)
 		_table(*self)->Remove(key);
 	}
 	if(pushval != 0)
-		if(pushval)	v->GetUp(-1) = t;
+		v->GetUp(-1) = t;
 	else
 		v->Pop(1);
 	return SQ_OK;
@@ -983,7 +981,7 @@ SQRESULT sq_suspendvm(HSQUIRRELVM v)
 	return v->Suspend();
 }
 
-SQRESULT sq_wakeupvm(HSQUIRRELVM v,SQBool wakeupret,SQBool retval,SQBool raiseerror)
+SQRESULT sq_wakeupvm(HSQUIRRELVM v,SQBool wakeupret,SQBool retval,SQBool raiseerror,SQBool throwerror)
 {
 	SQObjectPtr ret;
 	if(!v->_suspended)

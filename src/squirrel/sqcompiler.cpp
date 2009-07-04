@@ -1112,21 +1112,6 @@ public:
 	{
 		SQObject val;
 		switch(_token) {
-			case _SC('-'):
-				Lex();
-				val = ExpectScalar();
-				switch (val._type)
-				{
-				case OT_INTEGER:
-					val._unVal.nInteger = -val._unVal.nInteger;
-					return val;
-				case OT_FLOAT:
-					val._unVal.fFloat = -val._unVal.fFloat;
-					return val;
-				default:
-					Error(_SC("scalar expected : integer,float or string"));
-				}
-				break;
 			case TK_INTEGER:
 				val._type = OT_INTEGER;
 				val._unVal.nInteger = _lex._nvalue;
@@ -1137,6 +1122,22 @@ public:
 				break;
 			case TK_STRING_LITERAL:
 				val = _fs->CreateString(_lex._svalue,_lex._longstr.size()-1);
+				break;
+			case '-':
+				Lex();
+				switch(_token)
+				{
+				case TK_INTEGER:
+					val._type = OT_INTEGER;
+					val._unVal.nInteger = -_lex._nvalue;
+				break;
+				case TK_FLOAT:
+					val._type = OT_FLOAT;
+					val._unVal.fFloat = -_lex._fvalue;
+				break;
+				default:
+					Error(_SC("scalar expected : integer,float"));
+				}
 				break;
 			default:
 			Error(_SC("scalar expected : integer,float or string"));
