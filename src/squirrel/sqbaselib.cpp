@@ -13,6 +13,8 @@
 #include <stdarg.h>
 #include <ctype.h>
 
+#include "sqstdstring.h"
+
 bool str2num(const SQChar *s,SQObjectPtr &res)
 {
 	SQChar *end;
@@ -87,7 +89,8 @@ static SQInteger base_setdebughook(HSQUIRRELVM v)
 static SQInteger base_enabledebuginfo(HSQUIRRELVM v)
 {
 	SQObjectPtr &o=stack_get(v,2);
-	sq_enabledebuginfo(v,(type(o) != OT_NULL)?1:0);
+	
+	sq_enabledebuginfo(v,v->IsFalse(o)?SQFalse:SQTrue);
 	return 0;
 }
 
@@ -161,16 +164,15 @@ static SQInteger get_slice_params(HSQUIRRELVM v,SQInteger &sidx,SQInteger &eidx,
 	return 1;
 }
 
-extern SQInteger _string_format(HSQUIRRELVM v);
-
 static SQInteger base_print(HSQUIRRELVM v)
 {
-	const SQChar *str;
+	const SQChar *str = NULL;
 	if (sq_gettop(v) > 2)
 	{
-		if SQ_FAILED(_string_format(v))
-			return SQ_ERROR;
-		sq_getstring(v,-1,&str);
+		SQChar *str;
+		SQInteger length = 0;
+		if(SQ_FAILED(sqstd_format(v,2,&length,&str)))
+			return -1;
 	}
 	else
 	{
@@ -287,6 +289,9 @@ void sq_base_register(HSQUIRRELVM v)
 	sq_createslot(v,-3);
 	sq_pushstring(v,_SC("_intsize_"),-1);
 	sq_pushinteger(v,sizeof(SQInteger));
+	sq_createslot(v,-3);
+	sq_pushstring(v,_SC("_floatsize_"),-1);
+	sq_pushinteger(v,sizeof(SQFloat));
 	sq_createslot(v,-3);
 	sq_pop(v,1);
 }
@@ -1102,8 +1107,10 @@ static SQInteger thread_call(HSQUIRRELVM v)
 			sq_move(_thread(o),v,i);
 		if(SQ_SUCCEEDED(sq_call(_thread(o),nparams,SQTrue,SQFalse))) {
 			sq_move(v,_thread(o),-1);
+			sq_pop(_thread(o),1);
 			return 1;
 		}
+		v->_lasterror = _thread(o)->_lasterror;
 		return SQ_ERROR;
 	}
 	return sq_throwerror(v,_SC("wrong parameter"));
@@ -1132,12 +1139,14 @@ static SQInteger thread_wakeup(HSQUIRRELVM v)
 		}
 		if(SQ_SUCCEEDED(sq_wakeupvm(thread,wakeupret,1,SQFalse))) {
 			sq_move(v,thread,-1);
-			sq_pop(thread,1);
+			sq_pop(thread,1); //pop retval
 			if(sq_getvmstate(thread) == SQ_VMSTATE_IDLE) {
-				sq_pop(thread,1);
+				sq_settop(thread,1); //pop roottable
 			}
 			return 1;
 		}
+		sq_settop(thread,1);
+		v->_lasterror = thread->_lasterror;
 		return SQ_ERROR;
 	}
 	return sq_throwerror(v,_SC("wrong parameter"));
