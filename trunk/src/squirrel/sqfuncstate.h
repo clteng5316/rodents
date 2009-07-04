@@ -21,6 +21,7 @@ struct SQFuncState
 	SQInstruction &GetInstruction(SQInteger pos){return _instructions[pos];}
 	void PopInstructions(SQInteger size){for(SQInteger i=0;i<size;i++)_instructions.pop_back();}
 	void SetStackSize(SQInteger n);
+	SQInteger CountOuters(SQInteger stacksize);
 	void SnoozeOpt(){_optimization=false;}
 	void AddDefaultParam(SQInteger trg) { _defaultparams.push_back(trg); }
 	SQInteger GetDefaultParamCount() { return _defaultparams.size(); }
@@ -31,6 +32,7 @@ struct SQFuncState
 	void AddParameter(const SQObject &name);
 	//void AddOuterValue(const SQObject &name);
 	SQInteger GetLocalVariable(const SQObject &name);
+	void MarkLocalAsOuter(SQInteger pos);
 	SQInteger GetOuterVariable(const SQObject &name);
 	SQInteger GenerateCode();
 	SQInteger GetStackSize();

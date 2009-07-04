@@ -47,10 +47,12 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
 			case '+': res = i1 + i2; break;
 			case '-': res = i1 - i2; break;
 			case '/': if(i2 == 0) { Raise_Error(_SC("division by zero")); return false; }
-					  res = i1 / i2; 
-					  break;
+					res = i1 / i2; 
+					break;
 			case '*': res = i1 * i2; break;
-			case '%': res = i1 % i2; break;
+			case '%': if(i2 == 0) { Raise_Error(_SC("modulo by zero")); return false; }
+					res = i1 % i2; 
+					break;
 			default: res = 0xDEADBEEF;
 			}
 			trg = res; }
@@ -310,12 +312,11 @@ bool SQVM::Init(SQVM *friendvm, SQInteger stacksize)
 	return true;
 }
 
-//extern SQInstructionDesc g_InstrDesc[];
 
 bool SQVM::StartCall(SQClosure *closure,SQInteger target,SQInteger args,SQInteger stackbase,bool tailcall)
 {
 	SQFunctionProto *func = _funcproto(closure->_function);
-	
+
 	SQInteger paramssize = func->_nparameters;
 	const SQInteger newtop = stackbase + func->_stacksize;
 	SQInteger nargs = args;
@@ -326,7 +327,7 @@ bool SQVM::StartCall(SQClosure *closure,SQInteger target,SQInteger args,SQIntege
 			Raise_Error(_SC("wrong number of parameters"));
 			return false;
 		}
-		
+
 		//dumpstack(stackbase);
 		SQInteger nvargs = nargs - paramssize;
 		SQArray *arr = SQArray::Create(_ss(this),nvargs);

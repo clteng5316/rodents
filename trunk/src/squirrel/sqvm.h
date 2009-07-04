@@ -83,6 +83,10 @@ public:
 	void Raise_CompareError(const SQObject &o1, const SQObject &o2);
 	void Raise_ParamTypeError(SQInteger nparam,SQInteger typemask,SQInteger type);
 
+	void FindOuter(SQObjectPtr &target, SQObjectPtr *stackindex);
+	void RelocateOuters();
+	void CloseOuters(SQObjectPtr *stackindex);
+
 	void TypeOf(const SQObjectPtr &obj1, SQObjectPtr &dest);
 	bool CallMetaMethod(SQDelegable *del, SQMetaMethod mm, SQInteger nparams, SQObjectPtr &outres);
 	bool ArithMetaMethod(SQInteger op, const SQObjectPtr &o1, const SQObjectPtr &o2, SQObjectPtr &dest);
@@ -113,6 +117,8 @@ public:
 		_callsstack = &_callstackdata[0];
 		_alloccallsstacksize = newsize;
 	}
+	void EnterFrame(SQInteger newbase, SQInteger newtop, bool tailcall);
+	void LeaveFrame();
 	void Release(){ sq_delete(this,SQVM); } //does nothing
 ////////////////////////////////////////////////////////////////////////////
 	//stack functions for the api

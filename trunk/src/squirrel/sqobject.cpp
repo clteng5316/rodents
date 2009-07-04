@@ -35,6 +35,7 @@ const SQChar *IdType2Name(SQObjectType type)
 	case _RT_CLASS: return _SC("class");
 	case _RT_INSTANCE: return _SC("instance");
 	case _RT_WEAKREF: return _SC("weakref");
+	case _RT_OUTER: return _SC("outer");
 	default:
 		return NULL;
 	}
@@ -116,6 +117,7 @@ bool SQDelegable::GetMetaMethod(SQVM *v,SQMetaMethod mm,SQObjectPtr &res) {
 bool SQDelegable::SetDelegate(SQTable *mt)
 {
 	SQTable *temp = mt;
+	if(temp == this) return false;
 	while (temp) {
 		if (temp->_delegate == this) return false; //cycle detected
 		temp = temp->_delegate;
