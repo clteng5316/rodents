@@ -66,16 +66,16 @@ static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, 
 	return n;
 }
 
-SQInteger _string_format(HSQUIRRELVM v)
+SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen,SQChar **output)
 {
 	const SQChar *format;
+	SQChar *dest;
 	SQChar fmt[MAX_FORMAT_LEN];
-	sq_getstring(v,2,&format);
-	SQInteger allocated = sq_getsize(v,2)+1;
-	std::vector<SQChar> dest;
-	dest.resize(allocated);
-	SQInteger n = 0,i = 0, nparam = 3, w = 0;
-	SQInteger top = sq_gettop(v);
+	sq_getstring(v,nformatstringidx,&format);
+	SQInteger allocated = (sq_getsize(v,nformatstringidx)+2)*sizeof(SQChar);
+	dest = sq_getscratchpad(v,allocated);
+	SQInteger n = 0,i = 0, nparam = nformatstringidx+1, w = 0;
+	std::vector<SQChar> tmpbuf;
 	while(format[n] != '\0') {
 		if(format[n] != '%') {
 			assert(i < allocated);
@@ -88,7 +88,7 @@ SQInteger _string_format(HSQUIRRELVM v)
 		}
 		else {
 			n++;
-			if( nparam > top )
+			if( nparam > sq_gettop(v) )
 				return sq_throwerror(v,_SC("not enough paramters for the given format string"));
 			n = validate_format(v,fmt,format,n,w);
 			if(n < 0) return -1;
@@ -103,32 +103,45 @@ SQInteger _string_format(HSQUIRRELVM v)
 				pos = nparam;
 				if (sq_gettype(v, nparam) != OT_STRING)
 				{
+					// copy scratchpad because sq_tostring might overwrite contents in it.
+					if (allocated > 0)
+					{
+						tmpbuf.resize(allocated / sizeof(SQChar));
+						memcpy(&tmpbuf[0], dest, allocated);
+					}
+					// convert to string
 					sq_tostring(v, nparam);
 					pos = sq_gettop(v);
+					// restore scratch pad
+					if (allocated > 0)
+					{
+						dest = sq_getscratchpad(v,allocated);
+						memcpy(dest, &tmpbuf[0], allocated);
+					}
 				}
 				if(SQ_FAILED(sq_getstring(v,pos,&ts)))
 					return sq_throwerror(v,_SC("string expected for the specified format"));
-				addlen = sq_getsize(v,pos) + w + 1;
+				addlen = (sq_getsize(v,nparam)*sizeof(SQChar))+((w+1)*sizeof(SQChar));
 				valtype = 's';
 				break;
 			case 'i': case 'd': case 'c':case 'o':  case 'u':  case 'x':  case 'X':
 				if(SQ_FAILED(sq_getinteger(v,nparam,&ti))) 
 					return sq_throwerror(v,_SC("integer expected for the specified format"));
-				addlen = ADDITIONAL_FORMAT_SPACE + w + 1;
+				addlen = (ADDITIONAL_FORMAT_SPACE)+((w+1)*sizeof(SQChar));
 				valtype = 'i';
 				break;
 			case 'f': case 'g': case 'G': case 'e':  case 'E':
 				if(SQ_FAILED(sq_getfloat(v,nparam,&tf))) 
 					return sq_throwerror(v,_SC("float expected for the specified format"));
-				addlen = ADDITIONAL_FORMAT_SPACE + w + 1;
+				addlen = (ADDITIONAL_FORMAT_SPACE)+((w+1)*sizeof(SQChar));
 				valtype = 'f';
 				break;
 			default:
 				return sq_throwerror(v,_SC("invalid format"));
 			}
 			n++;
-			allocated += addlen;
-			dest.resize(allocated);
+			allocated += addlen + sizeof(SQChar);
+			dest = sq_getscratchpad(v,allocated);
 			switch(valtype) {
 			case 's': i += scsprintf(&dest[i],fmt,ts); break;
 			case 'i': i += scsprintf(&dest[i],fmt,ti); break;
@@ -137,7 +150,19 @@ SQInteger _string_format(HSQUIRRELVM v)
 			nparam ++;
 		}
 	}
-	sq_pushstring(v,&dest[0],i);
+	*outlen = i;
+	dest[i] = '\0';
+	*output = dest;
+	return SQ_OK;
+}
+
+static SQInteger _string_format(HSQUIRRELVM v)
+{
+	SQChar *dest = NULL;
+	SQInteger length = 0;
+	if(SQ_FAILED(sqstd_format(v,2,&length,&dest)))
+		return -1;
+	sq_pushstring(v,dest,length);
 	return 1;
 }
 
