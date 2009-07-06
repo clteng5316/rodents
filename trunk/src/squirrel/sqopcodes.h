@@ -21,6 +21,13 @@ enum CmpOP {
 	CMP_LE = 4,
 	CMP_3W = 5
 };
+
+enum NewObjectType {
+	NOT_TABLE = 0,
+	NOT_ARRAY = 1,
+	NOT_CLASS = 2
+};
+
 enum SQOpcode
 {
 	_OP_LINE=				0x00,	

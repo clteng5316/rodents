@@ -68,11 +68,13 @@ struct SQFuncState
 	SQInteger _nliterals;
 	SQLineInfoVec _lineinfos;
 	SQFuncState *_parent;
+	SQIntVec _scope_blocks;
 	SQIntVec _breaktargets;
 	SQIntVec _continuetargets;
 	SQIntVec _defaultparams;
 	SQInteger _lastline;
 	SQInteger _traps; //contains number of nested exception traps
+	SQInteger _outers;
 	bool _optimization;
 	SQSharedState *_sharedstate;
 	sqvector<SQFuncState*> _childstates;

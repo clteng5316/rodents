@@ -152,9 +152,13 @@ function rename_dialog_from_child()
 		local name = i.name
 		if (name.endswith(".zip"))
 		{
-			name = i.children[0].name
-			if (!name.endswith(".zip"))
-				name += ".zip"
+			local children = i.children
+			if (children && children.len() > 0)
+			{
+				name = children[0].name
+				if (!name.endswith(".zip"))
+					name += ".zip"
+			}
 		}
 		names.append(name)
 	}

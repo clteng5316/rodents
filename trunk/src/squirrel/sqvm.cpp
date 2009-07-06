@@ -96,6 +96,7 @@ SQVM::SQVM(SQSharedState *ss)
 	_debughook = false;
 	_debughook_native = NULL;
 	_debughook_closure = _null_;
+	_openouters = NULL;
 	ci = NULL;
 	INIT_CHAIN();ADD_TO_CHAIN(&_ss(this)->_gc_chain,this);
 }

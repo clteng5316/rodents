@@ -48,7 +48,7 @@ typedef sqvector<CallInfo> CallInfoVec;
 public:
 	void DebugHookProxy(SQInteger type, const SQChar * sourcename, SQInteger line, const SQChar * funcname);
 	static void _DebugHookProxy(HSQUIRRELVM v, SQInteger type, const SQChar * sourcename, SQInteger line, const SQChar * funcname);
-	enum ExecutionType { ET_CALL, ET_RESUME_GENERATOR, ET_RESUME_VM };
+	enum ExecutionType { ET_CALL, ET_RESUME_GENERATOR, ET_RESUME_VM,ET_RESUME_THROW_VM };
 	SQVM(SQSharedState *ss);
 	~SQVM();
 	bool Init(SQVM *friendvm, SQInteger stacksize);
@@ -138,6 +138,7 @@ public:
 
 	SQInteger _top;
 	SQInteger _stackbase;
+	SQOuter	*_openouters;
 	SQObjectPtr _roottable;
 	SQObjectPtr _lasterror;
 	SQObjectPtr _errorhandler;

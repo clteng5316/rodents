@@ -133,7 +133,7 @@ bool SQGenerator::Yield(SQVM *v,SQInteger target)
 	if(_state==eSuspended) { v->Raise_Error(_SC("internal vm error, yielding dead generator"));  return false;}
 	if(_state==eDead) { v->Raise_Error(_SC("internal vm error, yielding a dead generator")); return false; }
 	SQInteger size = v->_top-v->_stackbase;
-	_ci=*v->ci;
+	
 	_stack.resize(size);
 	SQObject _this = v->_stack[v->_stackbase];
 	_stack._vals[0] = ISREFCOUNTED(type(_this)) ? SQObjectPtr(_refcounted(_this)->GetWeakRef(type(_this))) : _this;
@@ -145,6 +145,7 @@ bool SQGenerator::Yield(SQVM *v,SQInteger target)
 		v->_stack[v->_stackbase+j] = _null_;
 	}
 
+	_ci=*v->ci;
 	_ci._generator=NULL;
 	for(SQInteger i=0;i<_ci._etraps;i++) {
 		_etraps.push_back(v->_etraps.top());
