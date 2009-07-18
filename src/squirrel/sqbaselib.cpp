@@ -169,10 +169,11 @@ static SQInteger base_print(HSQUIRRELVM v)
 	const SQChar *str = NULL;
 	if (sq_gettop(v) > 2)
 	{
-		SQChar *str;
+		SQChar *fmt;
 		SQInteger length = 0;
-		if(SQ_FAILED(sqstd_format(v,2,&length,&str)))
+		if(SQ_FAILED(sqstd_format(v,2,&length,&fmt)))
 			return -1;
+		str = fmt;
 	}
 	else
 	{

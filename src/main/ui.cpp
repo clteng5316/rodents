@@ -246,6 +246,7 @@ SQInteger def_ui(sq::VM v)
 	v.newclass<ListView, Window>();
 	def_property(columns);
 	def_property(detail);
+	def_property(focused);
 	def_property(mode);
 	def_property(nav);
 	def_property(path);

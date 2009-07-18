@@ -57,12 +57,14 @@ public:
 
 	ref<IShellItem>	item(int index) const;
 	ref<IShellItemArray> get_items() const;
+	ref<IShellItem>	get_focused() const;
+	void			set_focused(IShellItem *item);
 	ref<IShellItemArray> get_selection() const;
-	ref<IShellItem>	get_path() const;
-	SQInteger		set_path(sq::VM v);
 	SQInteger		set_selection(sq::VM v);
 	SQInteger		get_columns(sq::VM v);
 	SQInteger		set_columns(sq::VM v);
+	ref<IShellItem>	get_path() const;
+	SQInteger		set_path(sq::VM v);
 
 	bool	get_sorting() const;
 	void	set_sorting(bool value);
