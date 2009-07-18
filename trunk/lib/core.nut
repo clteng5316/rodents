@@ -100,8 +100,8 @@ function add_to_bookmark()
 
 function paste_into()
 {
-	local items = this.selection
-	if (!items || items.len() != 1 || !os.paste(items[0].linked.path))
+	local item = this.focused
+	if (!item || !os.paste(item.linked.path))
 		beep()
 }
 
@@ -163,6 +163,21 @@ function rename_dialog_from_child()
 		names.append(name)
 	}
 	run_rename_dialog(items, names)
+}
+
+function select_same_extension()
+{
+	local focus = this.focused
+	if (focus)
+	{
+		local name = focus.name
+		local dot = name.rfind(".")
+		if (dot != null)
+		{
+			local ext = name.slice(dot)
+			this.set_selection(@(item) item.endswith(ext) )
+		}
+	}
 }
 
 //=============================================================================

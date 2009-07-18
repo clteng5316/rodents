@@ -1318,6 +1318,26 @@ ref<IShellItemArray> ListView::get_items() const
 	return null;
 }
 
+ref<IShellItem>
+ListView::get_focused() const
+{
+	if (m_listview)
+	{
+		int index = m_listview.GetNextItem(-1, LVNI_FOCUSED);
+		if (index >= 0)
+			return item(index);
+	}
+	return null;
+}
+
+void
+ListView::set_focused(IShellItem *item)
+{
+	ref<IShellView> view;
+	if SUCCEEDED(GetCurrentView(&view))
+		view->SelectItem(ILCreate(item), SVSI_FOCUSED);
+}
+
 ref<IShellItemArray> ListView::get_selection() const
 {
 	ref<IShellItemArray>	items;
