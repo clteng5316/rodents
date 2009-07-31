@@ -3,6 +3,7 @@
 
 //========================================================================================================================
 // 型付けされたインタフェースポインタの参照.
+
 class REFINTF
 {
 public:
@@ -20,7 +21,6 @@ private:
 //========================================================================================================================
 
 HRESULT	CreateInstance(REFCLSID clsid, REFINTF pp);
-bool	same(IUnknown* lhs, IUnknown* rhs) throw();
 
 //========================================================================================================================
 // ref<T>
@@ -117,15 +117,3 @@ public:
 	T* get_ptr() const throw()		{ return m_ptr; }
 	__declspec(property(get=get_ptr)) T* ptr;
 };
-
-template < typename T, typename U >
-inline bool operator == (const ref<T>& lhs, const ref<U>& rhs) throw()	{ return same(lhs, rhs); }
-template < typename T, typename U >
-inline bool operator == (T* lhs, const ref<U>& rhs) throw()				{ return same(lhs, rhs); }
-template < typename T, typename U >
-inline bool operator == (const ref<T>& lhs, U* rhs) throw()				{ return same(lhs, rhs); }
-
-template < typename T, typename U >
-inline ref<T>& operator >> (ref<T>& r, U& v)		{ *r >> v; return r; }
-template < typename T, typename U >
-inline ref<T>& operator << (ref<T>& r, const U& v)	{ *r << v; return r; }
