@@ -337,10 +337,27 @@ SQInteger Window::set_placement(sq::VM v)
 
 	WINDOWPLACEMENT place = { sizeof(WINDOWPLACEMENT) };
 	GetWindowPlacement(m_hwnd, &place);
-	if (!IsRectEmpty(&bounds))
-		place.rcNormalPosition = bounds;
 	place.showCmd = (zoomed ? SW_SHOWMAXIMIZED : SW_RESTORE);
-	SetWindowPlacement(m_hwnd, &place);
+	if (IsRectEmpty(&bounds))
+	{
+		SetWindowPlacement(m_hwnd, &place);
+	}
+	else
+	{
+		// マルチディスプレイで起動直後の場合に位置を変更できない場合がある。
+		// 希望の位置に移動できるまでリトライする。
+		place.rcNormalPosition = bounds;
+		for (int i = 0; i < 10; i++)
+		{
+			SetWindowPlacement(m_hwnd, &place);
+
+			GetWindowPlacement(m_hwnd, &place);
+			if (place.rcNormalPosition == bounds)
+				break;
+			Sleep(200);
+		}
+	}
+
 	if (vertical)
 		ModifyStyle(0, CCS_VERT);
 	else

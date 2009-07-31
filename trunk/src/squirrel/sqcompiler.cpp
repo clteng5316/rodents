@@ -37,6 +37,40 @@ typedef sqvector<ExpState> ExpStateVec;
 
 #define _exst (_expstates.top())
 
+struct SQScope {
+	SQInteger outers;
+	SQInteger stacksize;
+};
+
+#define BEGIN_SCOPE() SQScope __oldscope__ = _scope; \
+					 _scope.outers = _fs->_outers; \
+					 _scope.stacksize = _fs->GetStackSize();
+
+#define RESOLVE_OUTERS() if(_fs->GetStackSize() != _scope.stacksize) { \
+							if(_fs->CountOuters(_scope.stacksize)) { \
+								_fs->AddInstruction(_OP_CLOSE,0,_scope.stacksize); \
+							} \
+						}
+
+#define END_SCOPE_NO_CLOSE() {	if(_fs->GetStackSize() != _scope.stacksize) { \
+							_fs->SetStackSize(_scope.stacksize); \
+						} \
+						_scope = __oldscope__; \
+					}
+
+#define END_SCOPE() {	SQInteger oldouters = _fs->_outers;\
+						if(_fs->GetStackSize() != _scope.stacksize) { \
+							_fs->SetStackSize(_scope.stacksize); \
+							if(oldouters != _fs->_outers) { \
+								_fs->AddInstruction(_OP_CLOSE,0,_scope.stacksize); \
+							} \
+						} \
+						_scope = __oldscope__; \
+					}
+//typedef sqvector<ExpState> ExpStateVec;
+
+//#define _exst (_expstates.top())
+
 #define BEGIN_BREAKBLE_BLOCK()	SQInteger __nbreaks__=_fs->_unresolvedbreaks.size(); \
 							SQInteger __ncontinues__=_fs->_unresolvedcontinues.size(); \
 							_fs->_breaktargets.push_back(0);_fs->_continuetargets.push_back(0);
@@ -1344,6 +1378,8 @@ private:
 	SQInteger _debugline;
 	SQInteger _debugop;
 	ExpStateVec _expstates;
+//	SQExpState   _es;
+	SQScope _scope;
 	SQChar *compilererror;
 	jmp_buf _errorjmp;
 	SQVM *_vm;
