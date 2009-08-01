@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include <time.h>
+#include <wininet.h>
 #include "math.hpp"
 #include "ref.hpp"
 #include "sq.hpp"
@@ -9,13 +10,6 @@
 #include "string.hpp"
 #include "win32.hpp"
 #include "resource.h"
-
-//=============================================================================
-
-static SQInteger os_copy(sq::VM v);
-static SQInteger os_bury(sq::VM v);
-static SQInteger os_remove(sq::VM v);
-static SQInteger os_rename(sq::VM v);
 
 //=============================================================================
 
@@ -233,6 +227,93 @@ static void os_settings()
 			::SetActiveWindow(hFolderOptions);
 		}
 	}
+}
+
+static string os_download(PCWSTR src, PCWSTR dst)
+{
+	typedef Handle<HINTERNET, InternetCloseHandle>	InternetH;
+
+	if (str::empty(src) || str::empty(dst))
+		throw sq::Error(E_INVALIDARG, L"os.download(src, dst)");
+
+	WCHAR	dstdir[MAX_PATH];
+	PCWSTR	dstname;
+
+	wcscpy_s(dstdir, dst);
+	if (PathIsDirectory(dstdir))
+	{
+		// TODO: src Ç™ # Ç‚ ? Çä‹ÇÒÇ≈Ç¢ÇÈèÍçáÇÃëŒâûÇ™ïKóvÅB
+		dstname = wcsrchr(src, L'/');
+		if (dstname)
+			dstname++;
+	}
+	else
+	{
+		PWSTR leaf = PathFindFileName(dstdir);
+		leaf[-1] = L'\0';
+		dstname = leaf;
+	}
+	if (str::empty(dstname))
+		dstname = L"index.html";
+
+	string	dstpath(sizeof(WCHAR) * MAX_PATH);
+	PathCombine(dstpath, dstdir, dstname);
+	if (PathFileExists(dstpath))
+		PathMakeUniqueName(dstpath, MAX_PATH, NULL, dstname, dstdir);
+
+	InternetH inet = InternetOpen(
+		APPNAME,	// user agent
+		INTERNET_OPEN_TYPE_PRECONFIG,
+		NULL,
+		NULL,
+		0);
+	if (!inet)
+		throw sq::Error(HRESULT_FROM_WIN32(GetLastError()), L"InternetOpen");
+
+	InternetH srcfile = InternetOpenUrl(
+		inet,
+		src,
+		NULL,
+		0,
+		INTERNET_FLAG_RELOAD,
+		0);
+	if (!srcfile)
+		throw sq::Error(HRESULT_FROM_WIN32(GetLastError()), L"InternetOpenUrl");
+
+	ref<IStream> dstfile;
+	try
+	{
+		for (;;)
+		{
+			HRESULT hr;
+			DWORD	size;
+			BYTE	buffer[1024];
+
+			if (!InternetReadFile(srcfile, buffer, sizeof(buffer), &size))
+			{
+				hr = HRESULT_FROM_WIN32(GetLastError());
+				throw sq::Error(hr, L"InternetReadFile");
+			}
+
+			if (size == 0)
+				break;	// done
+
+			if (!dstfile && FAILED(hr = StreamCreate(&dstfile, dstpath, STGM_WRITE | STGM_CREATE | STGM_FAILIFTHERE | STGM_SHARE_DENY_WRITE)))
+				throw sq::Error(hr, L"StreamCreate");
+			StreamWrite(dstfile, buffer, size);
+		}
+	}
+	catch (...)
+	{
+		if (dstfile)
+		{
+			dstfile = null;
+			DeleteFile(dstpath);
+		}
+		throw;
+	}
+
+	return dstpath;
 }
 
 //=============================================================================
@@ -539,6 +620,7 @@ SQInteger def_os(sq::VM v)
 	v.def(L"trash_size"			, trash_size);
 	v.def(L"trash_purge"		, trash_purge);
 	v.def(L"settings"			, os_settings);
+	v.def(L"download"			, os_download);
 	v.newslot(-3);
 
 	return 1;

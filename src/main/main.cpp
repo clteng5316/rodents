@@ -13,6 +13,7 @@
 #pragma comment(lib, "shlwapi")
 #pragma comment(lib, "version")
 #pragma comment(lib, "winmm")
+#pragma comment(lib, "wininet")
 #pragma comment(lib, "gdiplus")
 
 // ‚±‚ê‚Á‚ÄƒoƒO‚¶‚á‚È‚¢‚ÌH
