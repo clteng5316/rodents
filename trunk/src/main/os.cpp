@@ -298,10 +298,19 @@ static string os_download(PCWSTR src, PCWSTR dst)
 			if (size == 0)
 				break;	// done
 
-			if (!dstfile && FAILED(hr = StreamCreate(&dstfile, dstpath, STGM_WRITE | STGM_CREATE | STGM_FAILIFTHERE | STGM_SHARE_DENY_WRITE)))
+			if (!dstfile && FAILED(hr = StreamCreate(&dstfile, dstpath, STGM_WRITE | STGM_CREATE | STGM_FAILIFTHERE)))
 				throw sq::Error(hr, L"StreamCreate");
 			StreamWrite(dstfile, buffer, size);
 		}
+	}
+	catch (HRESULT hr)
+	{
+		if (dstfile)
+		{
+			dstfile = null;
+			DeleteFile(dstpath);
+		}
+		throw sq::Error(hr, L"cannot write stream");
 	}
 	catch (...)
 	{

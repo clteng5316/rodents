@@ -171,17 +171,14 @@ SQInteger Reader::_nexti(sq::VM v)
 	return 1;
 }
 
-namespace str
+inline static size_t strfind(const char* buffer, char c, size_t begin, size_t end)
 {
-	inline static size_t find(const char* buffer, char c, size_t begin, size_t end)
+	for (size_t i = begin; i < end; ++i)
 	{
-		for (size_t i = begin; i < end; ++i)
-		{
-			if (buffer[i] == c)
-				return i;
-		}
-		return END_OF_STREAM;
+		if (buffer[i] == c)
+			return i;
 	}
+	return END_OF_STREAM;
 }
 
 bool Reader::nextline(size_t* len_, size_t* linelen_)
@@ -192,7 +189,7 @@ bool Reader::nextline(size_t* len_, size_t* linelen_)
 
 	for (;;)
 	{
-		if ((tail = str::find(m_buffer, '\n', offset, m_buffer.size())) != END_OF_STREAM)
+		if ((tail = strfind(m_buffer, '\n', offset, m_buffer.size())) != END_OF_STREAM)
 		{
 			linelen = tail + 1;
 			break;
